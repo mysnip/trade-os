@@ -49,6 +49,23 @@ demo@tradeos.ai
 demo
 ```
 
+## Linux VServer Deployment
+
+Für einen kleinen eigenen Linux-VServer ist ein Deployment-Setup enthalten:
+
+- GitHub Actions Workflow: `.github/workflows/deploy-vserver.yml`
+- Deploy-Script: `scripts/deploy.sh`
+- systemd Template: `ops/systemd/tradeos-ai.service`
+- nginx Template: `ops/nginx/tradeos-ai.conf`
+- Production Env Beispiel: `ops/env/tradeos-ai.env.example`
+- Cron Template: `ops/cron/tradeos-ai`
+
+Vollständige Anleitung:
+
+```txt
+docs/vserver-deployment.md
+```
+
 ## Datenmodell
 
 Enthalten sind:
