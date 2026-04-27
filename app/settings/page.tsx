@@ -1,0 +1,100 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { requireUserId } from "@/lib/server";
+
+export default async function SettingsPage() {
+  await requireUserId();
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Settings</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Account-, Broker-, Zeitzonen-, Währungs- und Risikoeinstellungen für die nächste Ausbaustufe.
+        </p>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input placeholder="Demo Trader" />
+            </div>
+            <div className="space-y-2">
+              <Label>Zeitzone</Label>
+              <Select defaultValue="Europe/Berlin">
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Europe/Berlin">Europe/Berlin</SelectItem>
+                  <SelectItem value="America/New_York">America/New_York</SelectItem>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Währung</Label>
+              <Select defaultValue="USD">
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Broker & Automationen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <div className="rounded-md border p-3">
+              Broker-Sync per API: vorbereitet für Tradovate, NinjaTrader, Interactive Brokers, MT5 und Rithmic-ähnliche Exporte.
+            </div>
+            <div className="rounded-md border p-3">
+              Geplant: E-Mail-Import, TradingView Webhook, Screenshot-Zuordnung, Wochenreport und Alert-Regeln.
+            </div>
+            <div className="rounded-md border p-3">
+              Pricing vorbereitet: Free, Pro, Elite mit Trade-Limits, AI Insights und später Broker Sync.
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Risikoeinstellungen</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="space-y-2">
+              <Label>Standard Risk pro Trade</Label>
+              <Input type="number" placeholder="250" />
+            </div>
+            <div className="space-y-2">
+              <Label>Max Daily Loss</Label>
+              <Input type="number" placeholder="1000" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Compliance</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>TradeOS AI analysiert nur vergangene Trades.</p>
+            <p>Keine Anlageberatung. Keine Signale. Keine Gewinnversprechen.</p>
+            <p>User bleiben für alle Trading-Entscheidungen selbst verantwortlich.</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

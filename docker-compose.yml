@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tradeos-ai-postgres
+    environment:
+      POSTGRES_USER: tradeos
+      POSTGRES_PASSWORD: tradeos
+      POSTGRES_DB: tradeos_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - tradeos_ai_pg:/var/lib/postgresql/data
+
+volumes:
+  tradeos_ai_pg:
