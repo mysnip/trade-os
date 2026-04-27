@@ -58,6 +58,9 @@ Enthalten sind:
 - `Setup`
 - `ImportJob`
 - `AIInsight`
+- `BrokerConnection`
+- `BrokerAccount`
+- `BrokerSyncJob`
 - Auth.js Tabellen: `Account`, `Session`, `VerificationToken`
 
 Enums:
@@ -98,6 +101,50 @@ Beispieldatei:
 ```txt
 samples/generic-trades.csv
 ```
+
+## Tradovate OAuth Import
+
+TradeOS AI unterstützt eine erste OAuth-basierte Tradovate-Integration:
+
+1. In Tradovate eine OAuth App registrieren.
+2. Redirect URI setzen:
+
+```txt
+https://deine-domain.de/api/brokers/tradovate/callback
+```
+
+3. Env Vars setzen:
+
+```txt
+TRADOVATE_CLIENT_ID
+TRADOVATE_CLIENT_SECRET
+TRADOVATE_REDIRECT_URI
+TRADOVATE_ENVIRONMENT=LIVE oder DEMO
+APP_ENCRYPTION_KEY
+CRON_SECRET
+```
+
+4. In `/settings` auf `Tradovate verbinden` klicken.
+5. Nach OAuth die gewünschten Konten aktivieren.
+6. `Jetzt importieren` ausführen oder Cron laufen lassen.
+
+Die App speichert Tradovate Access Tokens verschlüsselt. Access Tokens werden per Cron vor Ablauf erneuert.
+
+Vercel Cron ist in `vercel.json` eingerichtet:
+
+```txt
+*/15 * * * *  /api/cron/tradovate/refresh-tokens
+*/30 * * * *  /api/cron/tradovate/sync
+```
+
+Für einen eigenen Linux-Server:
+
+```bash
+*/15 * * * * curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://deine-domain.de/api/cron/tradovate/refresh-tokens >/dev/null
+*/30 * * * * curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://deine-domain.de/api/cron/tradovate/sync >/dev/null
+```
+
+Der aktuelle Sync nutzt Tradovate Fills und FillPairs, rekonstruiert daraus abgeschlossene Trades und importiert diese dedupliziert über `importedFrom=tradovate:fillPair:<id>`.
 
 ## Analytics Engine
 
