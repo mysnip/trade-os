@@ -8,11 +8,17 @@ import {
 } from "@/lib/brokers/tradovate/oauth";
 
 export async function GET() {
+  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return NextResponse.redirect(new URL("/login", process.env.NEXTAUTH_URL ?? "http://localhost:3000"));
+    return NextResponse.redirect(new URL("/login", baseUrl));
   }
 
-  const state = createTradovateOAuthState(session.user.id);
-  return NextResponse.redirect(buildTradovateAuthorizationUrl(state));
+  try {
+    const state = createTradovateOAuthState(session.user.id);
+    return NextResponse.redirect(buildTradovateAuthorizationUrl(state));
+  } catch (error) {
+    console.error(error);
+    return NextResponse.redirect(new URL("/settings?tradovate=missing-config", baseUrl));
+  }
 }

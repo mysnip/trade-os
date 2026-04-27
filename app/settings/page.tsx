@@ -6,15 +6,14 @@ import { TradovateSettings } from "@/components/settings/tradovate-settings";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams
+}: {
+  searchParams?: { tradovate?: string };
+}) {
   const userId = await requireUserId();
-  const tradovateConnection = await prisma.brokerConnection.findFirst({
-    where: { userId, provider: "TRADOVATE" },
-    include: {
-      accounts: { orderBy: { name: "asc" } },
-      syncJobs: { orderBy: { startedAt: "desc" }, take: 5 }
-    }
-  });
+  const tradovateConnection = await loadTradovateConnection(userId);
+  const tradovateNotice = getTradovateNotice(searchParams?.tradovate);
 
   return (
     <div className="space-y-6">
@@ -24,6 +23,12 @@ export default async function SettingsPage() {
           Account-, Broker-, Zeitzonen-, Währungs- und Risikoeinstellungen für die nächste Ausbaustufe.
         </p>
       </div>
+
+      {tradovateNotice ? (
+        <div className="rounded-lg border border-accent/40 bg-accent/10 p-4 text-sm text-accent">
+          {tradovateNotice}
+        </div>
+      ) : null}
 
       <TradovateSettings connection={tradovateConnection} />
 
@@ -108,4 +113,28 @@ export default async function SettingsPage() {
       </div>
     </div>
   );
+}
+
+async function loadTradovateConnection(userId: string) {
+  try {
+    return await prisma.brokerConnection.findFirst({
+      where: { userId, provider: "TRADOVATE" },
+      include: {
+        accounts: { orderBy: { name: "asc" } },
+        syncJobs: { orderBy: { startedAt: "desc" }, take: 5 }
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+function getTradovateNotice(status?: string) {
+  if (status === "missing-config") {
+    return "Tradovate OAuth ist noch nicht konfiguriert. Setze TRADOVATE_CLIENT_ID, TRADOVATE_CLIENT_SECRET und TRADOVATE_REDIRECT_URI in deiner .env und starte den Server neu.";
+  }
+  if (status === "connected") return "Tradovate wurde verbunden. Wähle jetzt die Konten aus, die importiert werden sollen.";
+  if (status === "error") return "Tradovate konnte nicht verbunden werden. Prüfe OAuth App, Redirect URI und Server-Logs.";
+  return null;
 }
