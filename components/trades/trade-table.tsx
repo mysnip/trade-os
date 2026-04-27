@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Edit, Plus, Search } from "lucide-react";
+import { useId, useMemo, useState } from "react";
+import { Edit, ImagePlus, Plus, Search, X } from "lucide-react";
 
 import { createTradeAction, updateTradeAction } from "@/app/trades/actions";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +66,13 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
   const [dateTo, setDateTo] = useState("");
 
   const instruments = useMemo(() => Array.from(new Set(trades.map((trade) => trade.instrument))).sort(), [trades]);
+  const allMistakeTags = useMemo(
+    () =>
+      Array.from(new Set(trades.flatMap((trade) => trade.mistakeTags).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b)
+      ),
+    [trades]
+  );
   const filtered = useMemo(() => {
     return trades.filter((trade) => {
       const haystack = `${trade.instrument} ${trade.setupName ?? ""} ${trade.notes ?? ""} ${trade.mistakeTags.join(" ")}`.toLowerCase();
@@ -95,7 +102,12 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
             <DialogHeader>
               <DialogTitle>Trade manuell hinzufügen</DialogTitle>
             </DialogHeader>
-            <TradeForm action={createTradeAction} setups={setups} submitLabel="Trade speichern" />
+            <TradeForm
+              action={createTradeAction}
+              allMistakeTags={allMistakeTags}
+              setups={setups}
+              submitLabel="Trade speichern"
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -192,6 +204,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
                     </DialogHeader>
                     <TradeForm
                       action={updateTradeAction}
+                      allMistakeTags={allMistakeTags}
                       trade={trade}
                       setups={setups}
                       submitLabel="Änderungen speichern"
@@ -223,11 +236,13 @@ function numberValue(value?: number | null) {
 
 function TradeForm({
   action,
+  allMistakeTags,
   trade,
   setups,
   submitLabel
 }: {
   action: (formData: FormData) => void | Promise<void>;
+  allMistakeTags: string[];
   trade?: TradeRow;
   setups: SetupOption[];
   submitLabel: string;
@@ -347,8 +362,8 @@ function TradeForm({
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Screenshot URL">
-          <Input name="screenshotUrl" defaultValue={trade?.screenshotUrl ?? ""} />
+        <Field label="Screenshot">
+          <ScreenshotInput initialValue={trade?.screenshotUrl ?? ""} />
         </Field>
         <Field label="Imported From">
           <Input name="importedFrom" defaultValue={trade?.importedFrom ?? "manual"} />
@@ -356,7 +371,11 @@ function TradeForm({
       </div>
 
       <Field label="Mistake Tags">
-        <Input name="mistakeTags" defaultValue={trade?.mistakeTags.join(", ") ?? ""} placeholder="late entry, moved stop" />
+        <TagInput
+          initialTags={trade?.mistakeTags ?? []}
+          name="mistakeTags"
+          suggestions={allMistakeTags}
+        />
       </Field>
 
       <Field label="Notizen">
@@ -366,6 +385,198 @@ function TradeForm({
       <Button type="submit">{submitLabel}</Button>
     </form>
   );
+}
+
+function TagInput({
+  initialTags,
+  name,
+  suggestions
+}: {
+  initialTags: string[];
+  name: string;
+  suggestions: string[];
+}) {
+  const [tags, setTags] = useState(() => uniqueTags(initialTags));
+  const [draft, setDraft] = useState("");
+  const normalizedDraft = draft.trim().toLowerCase();
+  const visibleSuggestions = suggestions
+    .filter((suggestion) => !tags.some((tag) => tag.toLowerCase() === suggestion.toLowerCase()))
+    .filter((suggestion) => !normalizedDraft || suggestion.toLowerCase().includes(normalizedDraft))
+    .slice(0, 6);
+  const hasExactSuggestion = visibleSuggestions.some(
+    (suggestion) => suggestion.toLowerCase() === normalizedDraft
+  );
+
+  function addTag(value: string) {
+    const tag = value.trim().replace(/^,+|,+$/g, "");
+    if (!tag) return;
+    setTags((current) => uniqueTags([...current, tag]));
+    setDraft("");
+  }
+
+  function removeTag(value: string) {
+    setTags((current) => current.filter((tag) => tag !== value));
+  }
+
+  return (
+    <div className="space-y-2">
+      <input type="hidden" name={name} value={tags.join(", ")} />
+      <div className="min-h-10 rounded-md border bg-background px-2 py-2 focus-within:ring-2 focus-within:ring-ring">
+        <div className="flex flex-wrap items-center gap-2">
+          {tags.map((tag) => (
+            <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+              {tag}
+              <button
+                type="button"
+                className="rounded-sm p-0.5 hover:bg-background/80"
+                onClick={() => removeTag(tag)}
+                title={`${tag} entfernen`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          <input
+            className="min-w-36 flex-1 bg-transparent px-1 py-0.5 text-sm outline-none placeholder:text-muted-foreground"
+            placeholder={tags.length ? "Tag hinzufügen..." : "late entry, moved stop"}
+            value={draft}
+            onBlur={() => addTag(draft)}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === ",") {
+                event.preventDefault();
+                addTag(draft);
+              }
+              if (event.key === "Backspace" && !draft && tags.length > 0) {
+                event.preventDefault();
+                setTags((current) => current.slice(0, -1));
+              }
+            }}
+          />
+        </div>
+      </div>
+      {visibleSuggestions.length > 0 || normalizedDraft ? (
+        <div className="flex flex-wrap gap-2">
+          {visibleSuggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              className="rounded-md border px-2.5 py-1 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => addTag(suggestion)}
+            >
+              {suggestion}
+            </button>
+          ))}
+          {normalizedDraft && !hasExactSuggestion ? (
+            <button
+              type="button"
+              className="rounded-md border border-primary/50 px-2.5 py-1 text-xs text-primary hover:bg-primary/10"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => addTag(draft)}
+            >
+              Neues Tag "{draft.trim()}"
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ScreenshotInput({ initialValue }: { initialValue: string }) {
+  const id = useId();
+  const [screenshotUrl, setScreenshotUrl] = useState(initialValue);
+  const [busy, setBusy] = useState(false);
+
+  async function handleFile(file?: File) {
+    if (!file) return;
+    setBusy(true);
+    try {
+      setScreenshotUrl(await compressImageToDataUrl(file));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <input type="hidden" name="screenshotUrl" value={screenshotUrl} />
+      {screenshotUrl ? (
+        <div className="overflow-hidden rounded-md border bg-background">
+          <img src={screenshotUrl} alt="Trade screenshot preview" className="max-h-56 w-full object-contain" />
+        </div>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <Button asChild type="button" variant="outline">
+          <label htmlFor={id} className="cursor-pointer">
+            <ImagePlus className="h-4 w-4" />
+            {busy ? "Verarbeite..." : screenshotUrl ? "Screenshot ersetzen" : "Screenshot hochladen"}
+          </label>
+        </Button>
+        {screenshotUrl ? (
+          <Button type="button" variant="ghost" onClick={() => setScreenshotUrl("")}>
+            Entfernen
+          </Button>
+        ) : null}
+      </div>
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={(event) => void handleFile(event.target.files?.[0])}
+      />
+      <p className="text-xs text-muted-foreground">
+        MVP: Das Bild wird komprimiert und direkt am Trade gespeichert.
+      </p>
+    </div>
+  );
+}
+
+function uniqueTags(values: string[]) {
+  const seen = new Set<string>();
+  return values
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .filter((value) => {
+      const key = value.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+async function compressImageToDataUrl(file: File) {
+  const dataUrl = await readFileAsDataUrl(file);
+  const image = await loadImage(dataUrl);
+  const maxSide = 1600;
+  const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) return dataUrl;
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.82);
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
