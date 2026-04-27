@@ -28,14 +28,24 @@ export default async function TradesPage() {
     exitPrice: trade.exitPrice ? toNumber(trade.exitPrice) : null,
     quantity: toNumber(trade.quantity),
     netPnl: toNumber(trade.netPnl),
+    broker: trade.broker,
+    accountName: trade.accountName,
+    grossPnl: trade.grossPnl ? toNumber(trade.grossPnl) : null,
+    commission: trade.commission ? toNumber(trade.commission) : null,
+    fees: trade.fees ? toNumber(trade.fees) : null,
+    riskAmount: trade.riskAmount ? toNumber(trade.riskAmount) : null,
     rMultiple: trade.rMultiple ? toNumber(trade.rMultiple) : null,
+    stopLoss: trade.stopLoss ? toNumber(trade.stopLoss) : null,
+    takeProfit: trade.takeProfit ? toNumber(trade.takeProfit) : null,
     session: trade.session,
     setupId: trade.setupId,
     setupName: trade.setup?.name ?? null,
     notes: trade.notes,
     emotionBefore: trade.emotionBefore,
     emotionAfter: trade.emotionAfter,
-    mistakeTags: trade.mistakeTags
+    mistakeTags: trade.mistakeTags,
+    screenshotUrl: trade.screenshotUrl,
+    importedFrom: trade.importedFrom
   }));
 
   return (
