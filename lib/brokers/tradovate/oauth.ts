@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { BrokerConnection } from "@prisma/client";
 
 import {
@@ -29,6 +30,36 @@ export function buildTradovateAuthorizationUrl(state: string) {
   url.searchParams.set("redirect_uri", getTradovateRedirectUri());
   url.searchParams.set("state", state);
   return url.toString();
+}
+
+export function createTradovateOAuthState(userId: string) {
+  const payload = Buffer.from(
+    JSON.stringify({
+      userId,
+      nonce: crypto.randomBytes(12).toString("base64url"),
+      createdAt: Date.now()
+    })
+  ).toString("base64url");
+  const signature = signState(payload);
+  return `${payload}.${signature}`;
+}
+
+export function verifyTradovateOAuthState(state: string, expectedUserId: string) {
+  const [payload, signature] = state.split(".");
+  if (!payload || !signature || signState(payload) !== signature) {
+    throw new Error("Invalid Tradovate OAuth state.");
+  }
+
+  const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+    userId: string;
+    createdAt: number;
+  };
+  if (decoded.userId !== expectedUserId) {
+    throw new Error("Tradovate OAuth state user mismatch.");
+  }
+  if (Date.now() - decoded.createdAt > 10 * 60 * 1000) {
+    throw new Error("Tradovate OAuth state expired.");
+  }
 }
 
 export async function exchangeTradovateCode(code: string) {
@@ -189,4 +220,10 @@ function normalizeTokenResponse(token: TokenResponse) {
       ? new Date(token.expirationTime)
       : new Date(Date.now() + (token.expires_in ?? 90 * 60) * 1000)
   };
+}
+
+function signState(payload: string) {
+  const secret = process.env.NEXTAUTH_SECRET ?? process.env.APP_ENCRYPTION_KEY;
+  if (!secret) throw new Error("NEXTAUTH_SECRET must be configured for Tradovate OAuth state.");
+  return crypto.createHmac("sha256", secret).update(payload).digest("base64url");
 }
