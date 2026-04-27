@@ -22,8 +22,8 @@ npm run db:generate
 npm run db:deploy
 npm run build
 
-sudo systemctl restart "${SERVICE_NAME}"
-sudo systemctl is-active --quiet "${SERVICE_NAME}"
+sudo -n systemctl restart "${SERVICE_NAME}"
+sudo -n systemctl is-active --quiet "${SERVICE_NAME}"
 
 for attempt in {1..20}; do
   if curl -fsS "${HEALTH_URL}" >/dev/null; then
@@ -35,5 +35,5 @@ for attempt in {1..20}; do
 done
 
 echo "Healthcheck failed: ${HEALTH_URL}" >&2
-sudo journalctl -u "${SERVICE_NAME}" -n 80 --no-pager >&2
+sudo -n journalctl -u "${SERVICE_NAME}" -n 80 --no-pager >&2
 exit 1
