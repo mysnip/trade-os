@@ -2,10 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TradovateSettings } from "@/components/settings/tradovate-settings";
+import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 
 export default async function SettingsPage() {
-  await requireUserId();
+  const userId = await requireUserId();
+  const tradovateConnection = await prisma.brokerConnection.findFirst({
+    where: { userId, provider: "TRADOVATE" },
+    include: {
+      accounts: { orderBy: { name: "asc" } },
+      syncJobs: { orderBy: { startedAt: "desc" }, take: 5 }
+    }
+  });
 
   return (
     <div className="space-y-6">
@@ -15,6 +24,8 @@ export default async function SettingsPage() {
           Account-, Broker-, Zeitzonen-, Währungs- und Risikoeinstellungen für die nächste Ausbaustufe.
         </p>
       </div>
+
+      <TradovateSettings connection={tradovateConnection} />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
@@ -57,7 +68,7 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="rounded-md border p-3">
-              Broker-Sync per API: vorbereitet für Tradovate, NinjaTrader, Interactive Brokers, MT5 und Rithmic-ähnliche Exporte.
+              Tradovate OAuth Sync ist aktiv vorbereitet. NinjaTrader, Interactive Brokers, MT5 und Rithmic-ähnliche Exporte bleiben als nächste Adapter geplant.
             </div>
             <div className="rounded-md border p-3">
               Geplant: E-Mail-Import, TradingView Webhook, Screenshot-Zuordnung, Wochenreport und Alert-Regeln.
