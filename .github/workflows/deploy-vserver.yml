@@ -1,0 +1,34 @@
+name: Deploy to Linux VServer
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vserver-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VSERVER_HOST }}
+          username: ${{ secrets.VSERVER_USER }}
+          key: ${{ secrets.VSERVER_SSH_KEY }}
+          port: ${{ secrets.VSERVER_SSH_PORT || 22 }}
+          script_stop: true
+          command_timeout: 20m
+          script: |
+            export APP_DIR="${{ vars.APP_DIR || '/var/www/tradeos-ai' }}"
+            export DEPLOY_BRANCH="${{ vars.DEPLOY_BRANCH || 'main' }}"
+            export SERVICE_NAME="${{ vars.SERVICE_NAME || 'tradeos-ai' }}"
+            export HEALTH_URL="${{ vars.HEALTH_URL || 'http://127.0.0.1:3000/api/health' }}"
+            bash "$APP_DIR/scripts/deploy.sh"
