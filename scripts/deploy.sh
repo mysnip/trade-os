@@ -1,6 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+load_env_file() {
+  local file="$1"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    [[ "$line" != *=* ]] && continue
+
+    local key="${line%%=*}"
+    local value="${line#*=}"
+    key="${key%"${key##*[![:space:]]}"}"
+    value="${value#"${value%%[![:space:]]*}"}"
+
+    if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+      value="${value:1:${#value}-2}"
+    elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
+      value="${value:1:${#value}-2}"
+    fi
+
+    export "$key=$value"
+  done < "$file"
+}
+
 APP_DIR="${APP_DIR:-/srv/apps/tradeos-ai}"
 BRANCH="${DEPLOY_BRANCH:-main}"
 SERVICE_NAME="${SERVICE_NAME:-tradeos-ai}"
@@ -13,21 +36,26 @@ echo "Branch: ${BRANCH}"
 echo "Service: ${SERVICE_NAME}"
 echo "Env file: ${DEPLOY_ENV_FILE}"
 
-if [[ ! -r "${DEPLOY_ENV_FILE}" ]]; then
-  echo "Deploy env file is missing or not readable: ${DEPLOY_ENV_FILE}" >&2
-  exit 1
-fi
-
-set -a
-# shellcheck disable=SC1090
-source "${DEPLOY_ENV_FILE}"
-set +a
-
 cd "${APP_DIR}"
 
 git fetch origin "${BRANCH}"
 git checkout "${BRANCH}"
 git pull --ff-only origin "${BRANCH}"
+
+if [[ ! -r "${DEPLOY_ENV_FILE}" ]]; then
+  echo "Deploy env file is missing or not readable: ${DEPLOY_ENV_FILE}" >&2
+  exit 1
+fi
+
+load_env_file "${DEPLOY_ENV_FILE}"
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  echo "DATABASE_URL is still empty after loading ${DEPLOY_ENV_FILE}." >&2
+  echo "Check that the file contains a DATABASE_URL=... line readable by the deploy user." >&2
+  exit 1
+fi
+
+echo "Loaded DATABASE_URL from env file."
 
 npm ci
 npm run db:generate
