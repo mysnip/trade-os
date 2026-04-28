@@ -27,8 +27,9 @@ jobs:
           script_stop: true
           command_timeout: 20m
           script: |
-            export APP_DIR="${{ vars.APP_DIR || '/var/www/tradeos-ai' }}"
+            export APP_DIR="${{ vars.APP_DIR || '/srv/apps/tradeos-ai' }}"
             export DEPLOY_BRANCH="${{ vars.DEPLOY_BRANCH || 'main' }}"
             export SERVICE_NAME="${{ vars.SERVICE_NAME || 'tradeos-ai' }}"
             export HEALTH_URL="${{ vars.HEALTH_URL || 'http://127.0.0.1:3000/api/health' }}"
+            export DEPLOY_ENV_FILE="${{ vars.DEPLOY_ENV_FILE || '/etc/tradeos-ai/tradeos-ai.env' }}"
             bash "$APP_DIR/scripts/deploy.sh"

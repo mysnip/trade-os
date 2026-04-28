@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/var/www/tradeos-ai}"
+APP_DIR="${APP_DIR:-/srv/apps/tradeos-ai}"
 BRANCH="${DEPLOY_BRANCH:-main}"
 SERVICE_NAME="${SERVICE_NAME:-tradeos-ai}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:3000/api/health}"
+DEPLOY_ENV_FILE="${DEPLOY_ENV_FILE:-/etc/tradeos-ai/tradeos-ai.env}"
 
 echo "Deploying TradeOS AI"
 echo "App dir: ${APP_DIR}"
 echo "Branch: ${BRANCH}"
 echo "Service: ${SERVICE_NAME}"
+echo "Env file: ${DEPLOY_ENV_FILE}"
+
+if [[ ! -r "${DEPLOY_ENV_FILE}" ]]; then
+  echo "Deploy env file is missing or not readable: ${DEPLOY_ENV_FILE}" >&2
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "${DEPLOY_ENV_FILE}"
+set +a
 
 cd "${APP_DIR}"
 

@@ -63,10 +63,10 @@ CREATE DATABASE tradeos_ai OWNER tradeos;
 ## 4. Clone App
 
 ```bash
-sudo mkdir -p /var/www/tradeos-ai
-sudo chown deploy:deploy /var/www/tradeos-ai
+sudo mkdir -p /srv/apps/tradeos-ai
+sudo chown deploy:deploy /srv/apps/tradeos-ai
 sudo -iu deploy
-cd /var/www/tradeos-ai
+cd /srv/apps/tradeos-ai
 git clone git@github.com:YOUR_ORG/YOUR_REPO.git .
 npm ci
 ```
@@ -75,7 +75,7 @@ npm ci
 
 ```bash
 sudo mkdir -p /etc/tradeos-ai
-sudo cp /var/www/tradeos-ai/ops/env/tradeos-ai.env.example /etc/tradeos-ai/tradeos-ai.env
+sudo cp /srv/apps/tradeos-ai/ops/env/tradeos-ai.env.example /etc/tradeos-ai/tradeos-ai.env
 sudo nano /etc/tradeos-ai/tradeos-ai.env
 sudo chown root:deploy /etc/tradeos-ai/tradeos-ai.env
 sudo chmod 640 /etc/tradeos-ai/tradeos-ai.env
@@ -102,7 +102,7 @@ TRADOVATE_* if using Tradovate OAuth
 ## 6. Install systemd Service
 
 ```bash
-sudo cp /var/www/tradeos-ai/ops/systemd/tradeos-ai.service /etc/systemd/system/tradeos-ai.service
+sudo cp /srv/apps/tradeos-ai/ops/systemd/tradeos-ai.service /etc/systemd/system/tradeos-ai.service
 sudo systemctl daemon-reload
 sudo systemctl enable tradeos-ai
 ```
@@ -132,8 +132,8 @@ Run once before enabling automatic deploys:
 
 ```bash
 sudo -iu deploy
-cd /var/www/tradeos-ai
-APP_DIR=/var/www/tradeos-ai SERVICE_NAME=tradeos-ai bash scripts/deploy.sh
+cd /srv/apps/tradeos-ai
+APP_DIR=/srv/apps/tradeos-ai SERVICE_NAME=tradeos-ai DEPLOY_ENV_FILE=/etc/tradeos-ai/tradeos-ai.env bash scripts/deploy.sh
 ```
 
 ## 8. Configure Nginx
@@ -147,7 +147,7 @@ staging.example.com
 Then:
 
 ```bash
-sudo cp /var/www/tradeos-ai/ops/nginx/tradeos-ai.conf /etc/nginx/sites-available/tradeos-ai
+sudo cp /srv/apps/tradeos-ai/ops/nginx/tradeos-ai.conf /etc/nginx/sites-available/tradeos-ai
 sudo ln -s /etc/nginx/sites-available/tradeos-ai /etc/nginx/sites-enabled/tradeos-ai
 sudo nginx -t
 sudo systemctl reload nginx
@@ -168,10 +168,11 @@ VSERVER_SSH_PORT=22
 Optional repository variables:
 
 ```txt
-APP_DIR=/var/www/tradeos-ai
+APP_DIR=/srv/apps/tradeos-ai
 DEPLOY_BRANCH=main
 SERVICE_NAME=tradeos-ai
 HEALTH_URL=http://127.0.0.1:3000/api/health
+DEPLOY_ENV_FILE=/etc/tradeos-ai/tradeos-ai.env
 ```
 
 After this, every push to `main` runs:
@@ -191,7 +192,7 @@ healthcheck
 For Tradovate token refresh and automatic sync:
 
 ```bash
-sudo cp /var/www/tradeos-ai/ops/cron/tradeos-ai /etc/cron.d/tradeos-ai
+sudo cp /srv/apps/tradeos-ai/ops/cron/tradeos-ai /etc/cron.d/tradeos-ai
 sudo nano /etc/cron.d/tradeos-ai
 sudo chmod 644 /etc/cron.d/tradeos-ai
 ```
