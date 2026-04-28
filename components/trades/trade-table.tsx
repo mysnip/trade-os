@@ -475,7 +475,7 @@ function TagInput({
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => addTag(draft)}
             >
-              Neues Tag "{draft.trim()}"
+              Neues Tag &quot;{draft.trim()}&quot;
             </button>
           ) : null}
         </div>
@@ -504,6 +504,7 @@ function ScreenshotInput({ initialValue }: { initialValue: string }) {
       <input type="hidden" name="screenshotUrl" value={screenshotUrl} />
       {screenshotUrl ? (
         <div className="overflow-hidden rounded-md border bg-background">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={screenshotUrl} alt="Trade screenshot preview" className="max-h-56 w-full object-contain" />
         </div>
       ) : null}

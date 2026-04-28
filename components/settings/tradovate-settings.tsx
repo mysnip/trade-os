@@ -143,7 +143,7 @@ export function TradovateSettings({ connection }: { connection: TradovateConnect
                 </div>
               ) : (
                 <div className="rounded-md border p-3 text-sm text-muted-foreground">
-                  Noch keine Accounts geladen. Klicke auf "Accounts neu laden".
+                  Noch keine Accounts geladen. Klicke auf &quot;Accounts neu laden&quot;.
                 </div>
               )}
               <Button type="submit" variant="secondary">Account-Auswahl speichern</Button>
