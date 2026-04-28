@@ -67,7 +67,7 @@ model User {
   brokerAccounts    BrokerAccount[]
   brokerSyncJobs    BrokerSyncJob[]
   createdInvites    Invite[]     @relation("InvitesCreated")
-  acceptedInvite    Invite?      @relation("InviteAccepted")
+  acceptedInvites   Invite[]     @relation("InviteAccepted")
 }
 
 model Invite {
@@ -76,7 +76,7 @@ model Invite {
   name         String?
   tokenHash    String    @unique
   invitedById  String?
-  acceptedById String?   @unique
+  acceptedById String?
   expiresAt    DateTime
   acceptedAt   DateTime?
   createdAt    DateTime  @default(now())

@@ -17,7 +17,6 @@ CREATE TABLE "Invite" (
 );
 
 CREATE UNIQUE INDEX "Invite_tokenHash_key" ON "Invite"("tokenHash");
-CREATE UNIQUE INDEX "Invite_acceptedById_key" ON "Invite"("acceptedById");
 CREATE INDEX "Invite_email_idx" ON "Invite"("email");
 CREATE INDEX "Invite_expiresAt_idx" ON "Invite"("expiresAt");
 
