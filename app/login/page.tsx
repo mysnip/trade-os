@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
@@ -14,11 +14,13 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
-  const [email, setEmail] = useState("demo@tradeos.ai");
-  const [password, setPassword] = useState("demo");
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inviteAccepted = searchParams.get("invite") === "accepted";
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,6 +52,11 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
+            {inviteAccepted ? (
+              <div className="rounded-md border border-primary/40 bg-primary/10 p-3 text-sm text-primary">
+                {t.login.inviteAccepted}
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="email">{t.login.email}</Label>
               <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -68,7 +75,7 @@ export default function LoginPage() {
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {t.login.submit}
             </Button>
-            <p className="text-xs text-muted-foreground">{t.login.demo}</p>
+            <p className="text-xs text-muted-foreground">{t.login.inviteOnly}</p>
           </form>
         </CardContent>
       </Card>
