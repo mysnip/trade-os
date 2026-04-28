@@ -1,14 +1,21 @@
 import { PrismaClient, TradeDirection, TradingSession } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const demoPasswordHash = await hash("demo", 12);
   const user = await prisma.user.upsert({
     where: { email: "demo@tradeos.ai" },
-    update: {},
+    update: {
+      passwordHash: demoPasswordHash,
+      emailVerified: new Date()
+    },
     create: {
       email: "demo@tradeos.ai",
-      name: "Demo Trader"
+      name: "Demo Trader",
+      passwordHash: demoPasswordHash,
+      emailVerified: new Date()
     }
   });
 
