@@ -260,7 +260,11 @@ const de = {
   }
 } as const;
 
-export type Dictionary = typeof de;
+type DeepWiden<T> = {
+  readonly [K in keyof T]: T[K] extends string ? string : T[K] extends object ? DeepWiden<T[K]> : T[K];
+};
+
+export type Dictionary = DeepWiden<typeof de>;
 
 const en: Dictionary = {
   common: {
