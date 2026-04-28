@@ -1,4 +1,5 @@
 export const locales = ["de", "en"] as const;
+export const localeCookieName = "tradelyst_locale";
 
 export type Locale = (typeof locales)[number];
 
