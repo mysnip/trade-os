@@ -14,7 +14,7 @@ const acceptInviteSchema = z.object({
   confirmPassword: z.string().min(8)
 });
 
-function inviteRedirect(token: string, error: string) {
+function inviteRedirect(token: string, error: string): never {
   redirect(`/invite/${encodeURIComponent(token)}?error=${encodeURIComponent(error)}`);
 }
 
