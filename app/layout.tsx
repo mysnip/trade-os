@@ -6,8 +6,8 @@ import { authOptions } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TradeOS AI",
-  description: "Trading intelligence for journaling, analytics and process improvement."
+  title: "Tradelyst",
+  description: "Trade journal intelligence for structured tracking, analytics and process improvement."
 };
 
 export default async function RootLayout({

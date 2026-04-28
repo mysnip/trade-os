@@ -133,7 +133,7 @@ export async function generateTradingInsights(userId: string, dateRange?: DateRa
         {
           role: "user",
           content: JSON.stringify({
-            product: "TradeOS AI",
+            product: "Tradelyst",
             constraint:
               "No Anlageberatung, no signal generation, no recommendation to enter or exit any future trade.",
             metrics,

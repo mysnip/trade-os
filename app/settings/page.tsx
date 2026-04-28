@@ -105,7 +105,7 @@ export default async function SettingsPage({
             <CardTitle>Compliance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>TradeOS AI analysiert nur vergangene Trades.</p>
+            <p>Tradelyst analysiert nur vergangene Trades.</p>
             <p>Keine Anlageberatung. Keine Signale. Keine Gewinnversprechen.</p>
             <p>User bleiben für alle Trading-Entscheidungen selbst verantwortlich.</p>
           </CardContent>

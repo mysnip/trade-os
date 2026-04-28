@@ -57,7 +57,7 @@ export function TradovateSettings({ connection }: { connection: TradovateConnect
         {!connection ? (
           <div className="space-y-4">
             <div className="rounded-md border p-3 text-sm text-muted-foreground">
-              Du wirst zu Tradovate weitergeleitet. Danach lädt TradeOS die verfügbaren Accounts und du
+              Du wirst zu Tradovate weitergeleitet. Danach lädt Tradelyst die verfügbaren Accounts und du
               entscheidest, welche importiert werden.
             </div>
             <Button asChild>

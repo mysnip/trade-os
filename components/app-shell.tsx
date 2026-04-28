@@ -7,7 +7,6 @@ import { signOut } from "next-auth/react";
 import {
   BarChart3,
   Brain,
-  CandlestickChart,
   LayoutDashboard,
   Library,
   LogOut,
@@ -16,6 +15,7 @@ import {
   Upload
 } from "lucide-react";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,12 +46,10 @@ export function AppShell({
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r bg-background/85 backdrop-blur xl:block">
         <div className="flex h-full flex-col px-4 py-5">
           <Link href="/dashboard" className="mb-7 flex items-center gap-3 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <CandlestickChart className="h-5 w-5" />
-            </div>
+            <BrandLogo markClassName="h-9 w-9" />
             <div>
-              <div className="text-base font-semibold">TradeOS AI</div>
-              <div className="text-xs text-muted-foreground">Trading Intelligence</div>
+              <div className="text-base font-semibold">Tradelyst</div>
+              <div className="text-xs text-muted-foreground">Trade Journal Intelligence</div>
             </div>
           </Link>
 
@@ -78,7 +76,7 @@ export function AppShell({
           <div className="mt-auto rounded-md border bg-card p-3 text-xs text-muted-foreground">
             <p className="font-medium text-foreground">Compliance</p>
             <p className="mt-1">
-              Keine Anlageberatung. TradeOS AI analysiert ausschließlich vergangene Trades.
+              Keine Anlageberatung. Tradelyst analysiert ausschließlich vergangene Trades.
             </p>
           </div>
         </div>
@@ -87,8 +85,8 @@ export function AppShell({
       <header className="sticky top-0 z-20 border-b bg-background/88 backdrop-blur xl:ml-64">
         <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3 xl:hidden">
-            <CandlestickChart className="h-5 w-5 text-primary" />
-            <span className="font-semibold">TradeOS AI</span>
+            <BrandLogo markClassName="h-6 w-6" />
+            <span className="font-semibold">Tradelyst</span>
           </div>
           <div className="hidden min-w-0 flex-1 gap-2 overflow-x-auto xl:flex">
             {navItems.map((item) => (

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { CandlestickChart, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,13 +40,11 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <CandlestickChart className="h-6 w-6" />
-          </div>
+          <BrandLogo markClassName="h-11 w-11" />
           <div>
-            <CardTitle className="text-2xl">TradeOS AI</CardTitle>
+            <CardTitle className="text-2xl">Tradelyst</CardTitle>
             <p className="mt-2 text-sm text-muted-foreground">
-              Logge dich ein, importiere Trades und analysiere deinen Prozess.
+              Organisiere deine Trades, erkenne Muster und analysiere deinen Prozess.
             </p>
           </div>
         </CardHeader>

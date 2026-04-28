@@ -1,8 +1,8 @@
-# TradeOS AI
+# Tradelyst
 
 Trading-Intelligence-MVP für aktives Trade Journaling, CSV/XLSX-Import, Analytics und AI-gestützte Prozess-Insights.
 
-TradeOS AI ist keine Signal-Plattform und keine Anlageberatung. Die App analysiert nur vergangene Trades, Verhalten, Setups und Muster.
+Tradelyst ist keine Signal-Plattform und keine Anlageberatung. Die App analysiert nur vergangene Trades, Verhalten, Setups und Muster.
 
 ## Stack
 
@@ -121,7 +121,7 @@ samples/generic-trades.csv
 
 ## Tradovate OAuth Import
 
-TradeOS AI unterstützt eine erste OAuth-basierte Tradovate-Integration:
+Tradelyst unterstützt eine erste OAuth-basierte Tradovate-Integration:
 
 1. In Tradovate eine OAuth App registrieren.
 2. Redirect URI setzen:
