@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
+import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 export default async function SetupsPage() {
   const userId = await requireUserId();
+  const t = getCurrentDictionary();
   const setups = await prisma.setup.findMany({
     where: { userId },
     include: {
@@ -26,44 +28,42 @@ export default async function SetupsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Setup Library</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Definiere Playbooks, ordne Trades zu und prüfe, welche Setups echten Erwartungswert haben.
-        </p>
+        <h1 className="text-2xl font-semibold">{t.setups.title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t.setups.subtitle}</p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Setup anlegen</CardTitle>
+            <CardTitle>{t.setups.create}</CardTitle>
           </CardHeader>
           <CardContent>
             <form action={createSetupAction} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t.setups.name}</Label>
                 <Input id="name" name="name" placeholder="iFVG Retest" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Beschreibung</Label>
+                <Label htmlFor="description">{t.setups.description}</Label>
                 <Textarea id="description" name="description" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="marketConditions">Market Conditions</Label>
+                <Label htmlFor="marketConditions">{t.setups.marketConditions}</Label>
                 <Textarea id="marketConditions" name="marketConditions" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="entryCriteria">Entry Criteria</Label>
+                <Label htmlFor="entryCriteria">{t.setups.entryCriteria}</Label>
                 <Textarea id="entryCriteria" name="entryCriteria" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="exitCriteria">Exit Criteria</Label>
+                <Label htmlFor="exitCriteria">{t.setups.exitCriteria}</Label>
                 <Textarea id="exitCriteria" name="exitCriteria" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="invalidationCriteria">Invalidation</Label>
+                <Label htmlFor="invalidationCriteria">{t.setups.invalidation}</Label>
                 <Textarea id="invalidationCriteria" name="invalidationCriteria" />
               </div>
-              <Button type="submit">Setup speichern</Button>
+              <Button type="submit">{t.setups.save}</Button>
             </form>
           </CardContent>
         </Card>
@@ -80,7 +80,7 @@ export default async function SetupsPage() {
                       <p className="mt-2 text-sm text-muted-foreground">{setup.description}</p>
                     </div>
                     <Badge variant={metrics.expectancy >= 0 ? "default" : "destructive"}>
-                      {formatCurrency(metrics.expectancy)} Expectancy
+                      {formatCurrency(metrics.expectancy)} {t.setups.expectancy}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -104,9 +104,9 @@ export default async function SetupsPage() {
                     </div>
                   </div>
                   <div className="grid gap-3 text-sm md:grid-cols-3">
-                    <p><span className="text-muted-foreground">Entry:</span> {setup.entryCriteria || "-"}</p>
-                    <p><span className="text-muted-foreground">Exit:</span> {setup.exitCriteria || "-"}</p>
-                    <p><span className="text-muted-foreground">Invalidation:</span> {setup.invalidationCriteria || "-"}</p>
+                    <p><span className="text-muted-foreground">{t.setups.entry}:</span> {setup.entryCriteria || "-"}</p>
+                    <p><span className="text-muted-foreground">{t.setups.exit}:</span> {setup.exitCriteria || "-"}</p>
+                    <p><span className="text-muted-foreground">{t.setups.invalidation}:</span> {setup.invalidationCriteria || "-"}</p>
                   </div>
                 </CardContent>
               </Card>

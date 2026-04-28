@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TradovateSettings } from "@/components/settings/tradovate-settings";
+import { getCurrentDictionary, getCurrentLocale } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 
@@ -12,16 +13,16 @@ export default async function SettingsPage({
   searchParams?: { tradovate?: string };
 }) {
   const userId = await requireUserId();
+  const t = getCurrentDictionary();
+  const locale = getCurrentLocale();
   const tradovateConnection = await loadTradovateConnection(userId);
-  const tradovateNotice = getTradovateNotice(searchParams?.tradovate);
+  const tradovateNotice = getTradovateNotice(searchParams?.tradovate, t);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Account-, Broker-, Zeitzonen-, Währungs- und Risikoeinstellungen für die nächste Ausbaustufe.
-        </p>
+        <h1 className="text-2xl font-semibold">{t.settings.title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t.settings.subtitle}</p>
       </div>
 
       {tradovateNotice ? (
@@ -30,20 +31,20 @@ export default async function SettingsPage({
         </div>
       ) : null}
 
-      <TradovateSettings connection={tradovateConnection} />
+      <TradovateSettings connection={tradovateConnection} copy={t.tradovate} locale={locale} neverLabel={t.common.never} />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
+            <CardTitle>{t.settings.account}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="space-y-2">
-              <Label>Name</Label>
+              <Label>{t.settings.name}</Label>
               <Input placeholder="Demo Trader" />
             </div>
             <div className="space-y-2">
-              <Label>Zeitzone</Label>
+              <Label>{t.settings.timezone}</Label>
               <Select defaultValue="Europe/Berlin">
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -54,7 +55,7 @@ export default async function SettingsPage({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Währung</Label>
+              <Label>{t.settings.currency}</Label>
               <Select defaultValue="USD">
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -69,32 +70,32 @@ export default async function SettingsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Broker & Automationen</CardTitle>
+            <CardTitle>{t.settings.brokerAutomation}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="rounded-md border p-3">
-              Tradovate OAuth Sync ist aktiv vorbereitet. NinjaTrader, Interactive Brokers, MT5 und Rithmic-ähnliche Exporte bleiben als nächste Adapter geplant.
+              {t.settings.brokerText1}
             </div>
             <div className="rounded-md border p-3">
-              Geplant: E-Mail-Import, TradingView Webhook, Screenshot-Zuordnung, Wochenreport und Alert-Regeln.
+              {t.settings.brokerText2}
             </div>
             <div className="rounded-md border p-3">
-              Pricing vorbereitet: Free, Pro, Elite mit Trade-Limits, AI Insights und später Broker Sync.
+              {t.settings.brokerText3}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Risikoeinstellungen</CardTitle>
+            <CardTitle>{t.settings.risk}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="space-y-2">
-              <Label>Standard Risk pro Trade</Label>
+              <Label>{t.settings.standardRisk}</Label>
               <Input type="number" placeholder="250" />
             </div>
             <div className="space-y-2">
-              <Label>Max Daily Loss</Label>
+              <Label>{t.settings.maxDailyLoss}</Label>
               <Input type="number" placeholder="1000" />
             </div>
           </CardContent>
@@ -102,12 +103,12 @@ export default async function SettingsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Compliance</CardTitle>
+            <CardTitle>{t.common.compliance}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Tradelyst analysiert nur vergangene Trades.</p>
-            <p>Keine Anlageberatung. Keine Signale. Keine Gewinnversprechen.</p>
-            <p>User bleiben für alle Trading-Entscheidungen selbst verantwortlich.</p>
+            <p>{t.settings.compliance1}</p>
+            <p>{t.settings.compliance2}</p>
+            <p>{t.settings.compliance3}</p>
           </CardContent>
         </Card>
       </div>
@@ -130,11 +131,11 @@ async function loadTradovateConnection(userId: string) {
   }
 }
 
-function getTradovateNotice(status?: string) {
+function getTradovateNotice(status: string | undefined, t: ReturnType<typeof getCurrentDictionary>) {
   if (status === "missing-config") {
-    return "Tradovate OAuth ist noch nicht konfiguriert. Setze TRADOVATE_CLIENT_ID, TRADOVATE_CLIENT_SECRET und TRADOVATE_REDIRECT_URI in deiner .env und starte den Server neu.";
+    return t.settings.notices.missingConfig;
   }
-  if (status === "connected") return "Tradovate wurde verbunden. Wähle jetzt die Konten aus, die importiert werden sollen.";
-  if (status === "error") return "Tradovate konnte nicht verbunden werden. Prüfe OAuth App, Redirect URI und Server-Logs.";
+  if (status === "connected") return t.settings.notices.connected;
+  if (status === "error") return t.settings.notices.error;
   return null;
 }

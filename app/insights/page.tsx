@@ -3,11 +3,13 @@ import { Brain, Sparkles } from "lucide-react";
 import { generateInsightsAction } from "@/app/insights/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 
 export default async function InsightsPage() {
   const userId = await requireUserId();
+  const t = getCurrentDictionary();
   const insights = await prisma.aIInsight.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -18,22 +20,19 @@ export default async function InsightsPage() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="text-2xl font-semibold">AI Insights</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Erkennt wiederkehrende Fehler, profitable Cluster und Prozessmuster aus vergangenen Trades.
-          </p>
+          <h1 className="text-2xl font-semibold">{t.insights.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t.insights.subtitle}</p>
         </div>
         <form action={generateInsightsAction}>
           <Button type="submit">
             <Sparkles className="h-4 w-4" />
-            Insights generieren
+            {t.insights.generate}
           </Button>
         </form>
       </div>
 
       <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
-        Keine Kauf-/Verkaufsempfehlungen. Die AI analysiert ausschließlich historische Performance,
-        Verhalten, Setups und Risikoprozesse.
+        {t.insights.compliance}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -45,13 +44,13 @@ export default async function InsightsPage() {
                 {insight.title}
               </CardTitle>
               <div className="text-xs uppercase text-muted-foreground">
-                {insight.insightType} · Confidence {Number(insight.confidenceScore).toFixed(2)}
+                {insight.insightType} · {t.common.confidence} {Number(insight.confidenceScore).toFixed(2)}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">{insight.summary}</p>
               <div className="rounded-md border bg-background/50 p-3 text-sm">
-                <div className="mb-1 font-medium">Prozess-Verbesserung</div>
+                <div className="mb-1 font-medium">{t.insights.processImprovement}</div>
                 <p className="text-muted-foreground">{insight.suggestedAction}</p>
               </div>
             </CardContent>
@@ -62,7 +61,7 @@ export default async function InsightsPage() {
       {insights.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Noch keine Insights gespeichert. Importiere Trades und starte die Analyse.
+            {t.insights.empty}
           </CardContent>
         </Card>
       ) : null}

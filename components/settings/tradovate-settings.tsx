@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Dictionary, Locale } from "@/lib/i18n";
 
 type TradovateConnection = {
   id: string;
@@ -35,16 +36,26 @@ type TradovateConnection = {
   }>;
 };
 
-export function TradovateSettings({ connection }: { connection: TradovateConnection | null }) {
+export function TradovateSettings({
+  connection,
+  copy,
+  locale,
+  neverLabel
+}: {
+  connection: TradovateConnection | null;
+  copy: Dictionary["tradovate"];
+  locale: Locale;
+  neverLabel: string;
+}) {
+  const dateLocale = locale === "de" ? "de-DE" : "en-US";
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle>Tradovate OAuth Import</CardTitle>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Verbinde Tradovate per OAuth, wähle Konten aus und importiere Fills automatisch ins Journal.
-            </p>
+            <CardTitle>{copy.title}</CardTitle>
+            <p className="mt-2 text-sm text-muted-foreground">{copy.description}</p>
           </div>
           {connection ? (
             <Badge variant={connection.status === "CONNECTED" ? "default" : "destructive"}>
@@ -57,13 +68,12 @@ export function TradovateSettings({ connection }: { connection: TradovateConnect
         {!connection ? (
           <div className="space-y-4">
             <div className="rounded-md border p-3 text-sm text-muted-foreground">
-              Du wirst zu Tradovate weitergeleitet. Danach lädt Tradelyst die verfügbaren Accounts und du
-              entscheidest, welche importiert werden.
+              {copy.intro}
             </div>
             <Button asChild>
               <Link href="/api/brokers/tradovate/connect">
                 <Unplug className="h-4 w-4" />
-                Tradovate verbinden
+                {copy.connect}
               </Link>
             </Button>
           </div>
@@ -71,17 +81,17 @@ export function TradovateSettings({ connection }: { connection: TradovateConnect
           <div className="space-y-5">
             <div className="grid gap-3 text-sm md:grid-cols-3">
               <div className="rounded-md border p-3">
-                <div className="text-muted-foreground">Environment</div>
+                <div className="text-muted-foreground">{copy.environment}</div>
                 <div className="mt-1 font-medium">{connection.environment}</div>
               </div>
               <div className="rounded-md border p-3">
-                <div className="text-muted-foreground">Token gültig bis</div>
-                <div className="mt-1 font-medium">{connection.expiresAt.toLocaleString()}</div>
+                <div className="text-muted-foreground">{copy.tokenValidUntil}</div>
+                <div className="mt-1 font-medium">{connection.expiresAt.toLocaleString(dateLocale)}</div>
               </div>
               <div className="rounded-md border p-3">
-                <div className="text-muted-foreground">Letzter Sync</div>
+                <div className="text-muted-foreground">{copy.lastSync}</div>
                 <div className="mt-1 font-medium">
-                  {connection.lastSyncedAt ? connection.lastSyncedAt.toLocaleString() : "Noch nie"}
+                  {connection.lastSyncedAt ? connection.lastSyncedAt.toLocaleString(dateLocale) : neverLabel}
                 </div>
               </div>
             </div>
@@ -96,25 +106,25 @@ export function TradovateSettings({ connection }: { connection: TradovateConnect
               <Button asChild variant={connection.status === "NEEDS_REAUTH" ? "default" : "outline"}>
                 <Link href="/api/brokers/tradovate/connect">
                   <Unplug className="h-4 w-4" />
-                  Neu verbinden
+                  {copy.reconnect}
                 </Link>
               </Button>
               <form action={refreshTradovateAccountsAction}>
                 <Button type="submit" variant="outline">
                   <RefreshCw className="h-4 w-4" />
-                  Accounts neu laden
+                  {copy.reloadAccounts}
                 </Button>
               </form>
               <form action={syncTradovateNowAction}>
                 <Button type="submit">
                   <UploadCloud className="h-4 w-4" />
-                  Jetzt importieren
+                  {copy.importNow}
                 </Button>
               </form>
             </div>
 
             <form action={updateTradovateAccountSelectionAction} className="space-y-3">
-              <div className="text-sm font-medium">Zu importierende Konten</div>
+              <div className="text-sm font-medium">{copy.accountsToImport}</div>
               {connection.accounts.length > 0 ? (
                 <div className="grid gap-2">
                   {connection.accounts.map((account) => (
@@ -143,22 +153,25 @@ export function TradovateSettings({ connection }: { connection: TradovateConnect
                 </div>
               ) : (
                 <div className="rounded-md border p-3 text-sm text-muted-foreground">
-                  Noch keine Accounts geladen. Klicke auf &quot;Accounts neu laden&quot;.
+                  {copy.noAccounts}
                 </div>
               )}
-              <Button type="submit" variant="secondary">Account-Auswahl speichern</Button>
+              <Button type="submit" variant="secondary">{copy.saveSelection}</Button>
             </form>
 
             {connection.syncJobs.length > 0 ? (
               <div className="space-y-2">
-                <div className="text-sm font-medium">Letzte Sync-Jobs</div>
+                <div className="text-sm font-medium">{copy.recentJobs}</div>
                 {connection.syncJobs.map((job) => (
                   <div key={job.id} className="rounded-md border p-3 text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">{job.status}</span>
                     {" · "}
-                    {job.startedAt.toLocaleString()}
+                    {job.startedAt.toLocaleString(dateLocale)}
                     {" · "}
-                    gefunden {job.rowsFound}, importiert {job.rowsImported}, fehlgeschlagen {job.rowsFailed}
+                    {copy.foundImportedFailed
+                      .replace("{found}", String(job.rowsFound))
+                      .replace("{imported}", String(job.rowsImported))
+                      .replace("{failed}", String(job.rowsFailed))}
                   </div>
                 ))}
               </div>

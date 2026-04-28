@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { detectTradingPatterns } from "@/lib/analytics/patterns";
+import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
+  const t = getCurrentDictionary();
   const trades = await prisma.trade.findMany({
     where: { userId },
     include: { setup: { select: { name: true } } },
@@ -31,30 +33,28 @@ export default async function DashboardPage() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Importiere deine Trades automatisch und erkenne, warum du wirklich Geld gewinnst oder verlierst.
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
         <Button asChild>
-          <Link href="/import">Trades importieren</Link>
+          <Link href="/import">{t.dashboard.importTrades}</Link>
         </Button>
       </div>
 
       <ComplianceNote />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        <KpiCard title="Net PnL" value={formatCurrency(metrics.netPnl)} />
-        <KpiCard title="Winrate" value={formatPercent(metrics.winrate)} />
-        <KpiCard title="Profit Factor" value={metrics.profitFactor.toFixed(2)} />
-        <KpiCard title="Expectancy" value={formatCurrency(metrics.expectancy)} />
-        <KpiCard title="Trades" value={String(metrics.tradeCount)} />
-        <KpiCard title="Max Drawdown" value={formatCurrency(metrics.maxDrawdown)} />
+        <KpiCard title={t.kpis.netPnl} value={formatCurrency(metrics.netPnl)} />
+        <KpiCard title={t.kpis.winrate} value={formatPercent(metrics.winrate)} />
+        <KpiCard title={t.kpis.profitFactor} value={metrics.profitFactor.toFixed(2)} />
+        <KpiCard title={t.kpis.expectancy} value={formatCurrency(metrics.expectancy)} />
+        <KpiCard title={t.kpis.trades} value={String(metrics.tradeCount)} />
+        <KpiCard title={t.kpis.maxDrawdown} value={formatCurrency(metrics.maxDrawdown)} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader>
-            <CardTitle>AI Summary</CardTitle>
+            <CardTitle>{t.dashboard.aiSummary}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {insights.length > 0 ? (
@@ -65,16 +65,14 @@ export default async function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="text-sm text-muted-foreground">
-                Noch keine AI Insights. Generiere sie nach dem ersten Import auf der Insights-Seite.
-              </div>
+              <div className="text-sm text-muted-foreground">{t.dashboard.noInsights}</div>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Automatisch erkannte Muster</CardTitle>
+            <CardTitle>{t.dashboard.patterns}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {patterns.length > 0 ? (
@@ -85,9 +83,7 @@ export default async function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div className="text-sm text-muted-foreground">
-                Mehr Trades verbessern die Mustererkennung.
-              </div>
+              <div className="text-sm text-muted-foreground">{t.dashboard.noPatterns}</div>
             )}
           </CardContent>
         </Card>

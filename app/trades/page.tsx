@@ -1,11 +1,13 @@
 import { TradeTable, type TradeRow } from "@/components/trades/trade-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { toNumber } from "@/lib/utils";
 
 export default async function TradesPage() {
   const userId = await requireUserId();
+  const t = getCurrentDictionary();
   const [trades, setups] = await Promise.all([
     prisma.trade.findMany({
       where: { userId },
@@ -51,14 +53,12 @@ export default async function TradesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Trade Journal</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Filtere, tagge und dokumentiere deine Trades ohne Trade-Signale oder Anlageberatung.
-        </p>
+        <h1 className="text-2xl font-semibold">{t.trades.title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t.trades.subtitle}</p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Trades</CardTitle>
+          <CardTitle>{t.trades.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           <TradeTable
