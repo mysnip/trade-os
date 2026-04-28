@@ -41,7 +41,26 @@ const de = {
     password: "Passwort",
     submit: "Login",
     failed: "Login fehlgeschlagen.",
-    demo: "Demo: demo@tradeos.ai / demo. Dieses MVP speichert keine Klartext-Passwörter."
+    inviteOnly: "Zugang nur per Einladung. Wenn du noch keinen Account hast, brauchst du einen Invite-Link.",
+    inviteAccepted: "Einladung angenommen. Du kannst dich jetzt einloggen."
+  },
+  invite: {
+    title: "Einladung annehmen",
+    subtitle: "Lege dein Passwort fest, um deinen Tradelyst-Zugang zu aktivieren.",
+    invalidTitle: "Invite-Link ungültig",
+    invalidText: "Dieser Invite-Link ist ungültig, abgelaufen oder wurde bereits verwendet.",
+    email: "Email",
+    name: "Name",
+    password: "Passwort",
+    confirmPassword: "Passwort bestätigen",
+    accept: "Account aktivieren",
+    passwordHelp: "Mindestens 8 Zeichen.",
+    errors: {
+      invalid: "Die Einladung konnte nicht verarbeitet werden.",
+      password: "Die Passwörter stimmen nicht überein oder sind zu kurz.",
+      expired: "Diese Einladung ist abgelaufen.",
+      used: "Diese Einladung wurde bereits verwendet."
+    }
   },
   complianceNote: {
     text: "Tradelyst ist keine Signal-Plattform und bietet keine Anlageberatung. Die App analysiert ausschließlich vergangene Trades, Verhaltensmuster und Prozessqualität. Keine Gewinnversprechen."
@@ -304,7 +323,26 @@ const en: Dictionary = {
     password: "Password",
     submit: "Log in",
     failed: "Login failed.",
-    demo: "Demo: demo@tradeos.ai / demo. This MVP does not store plaintext passwords."
+    inviteOnly: "Access is invite-only. If you do not have an account yet, you need an invite link.",
+    inviteAccepted: "Invite accepted. You can log in now."
+  },
+  invite: {
+    title: "Accept invite",
+    subtitle: "Set your password to activate your Tradelyst account.",
+    invalidTitle: "Invalid invite link",
+    invalidText: "This invite link is invalid, expired, or has already been used.",
+    email: "Email",
+    name: "Name",
+    password: "Password",
+    confirmPassword: "Confirm password",
+    accept: "Activate account",
+    passwordHelp: "At least 8 characters.",
+    errors: {
+      invalid: "The invite could not be processed.",
+      password: "The passwords do not match or are too short.",
+      expired: "This invite has expired.",
+      used: "This invite has already been used."
+    }
   },
   complianceNote: {
     text: "Tradelyst is not a signal platform and does not provide investment advice. The app only analyzes past trades, behavior patterns, and process quality. No profit promises."
