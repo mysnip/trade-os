@@ -16,18 +16,20 @@ import {
 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { useI18n } from "@/components/i18n-provider";
+import { LanguageSelector } from "@/components/language-selector";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/import", label: "Import", icon: Upload },
-  { href: "/trades", label: "Trades", icon: Table2 },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/setups", label: "Setups", icon: Library },
-  { href: "/insights", label: "Insights", icon: Brain },
-  { href: "/settings", label: "Settings", icon: Settings }
-];
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/import", labelKey: "import", icon: Upload },
+  { href: "/trades", labelKey: "trades", icon: Table2 },
+  { href: "/analytics", labelKey: "analytics", icon: BarChart3 },
+  { href: "/setups", labelKey: "setups", icon: Library },
+  { href: "/insights", labelKey: "insights", icon: Brain },
+  { href: "/settings", labelKey: "settings", icon: Settings }
+] as const;
 
 export function AppShell({
   children,
@@ -38,6 +40,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const isLogin = pathname === "/login";
+  const { t } = useI18n();
 
   if (isLogin) return <>{children}</>;
 
@@ -49,7 +52,7 @@ export function AppShell({
             <BrandLogo markClassName="h-9 w-9" />
             <div>
               <div className="text-base font-semibold">Tradelyst</div>
-              <div className="text-xs text-muted-foreground">Trade Journal Intelligence</div>
+              <div className="text-xs text-muted-foreground">{t.appShell.tagline}</div>
             </div>
           </Link>
 
@@ -67,17 +70,15 @@ export function AppShell({
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
+                  {t.appShell.nav[item.labelKey]}
                 </Link>
               );
             })}
           </nav>
 
           <div className="mt-auto rounded-md border bg-card p-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">Compliance</p>
-            <p className="mt-1">
-              Keine Anlageberatung. Tradelyst analysiert ausschließlich vergangene Trades.
-            </p>
+            <p className="font-medium text-foreground">{t.common.compliance}</p>
+            <p className="mt-1">{t.appShell.compliance}</p>
           </div>
         </div>
       </aside>
@@ -98,23 +99,24 @@ export function AppShell({
                   pathname.startsWith(item.href) && "bg-secondary text-foreground"
                 )}
               >
-                {item.label}
+                {t.appShell.nav[item.labelKey]}
               </Link>
             ))}
           </div>
           {session?.user ? (
             <div className="flex items-center gap-3">
+              <LanguageSelector />
               <div className="hidden text-right text-sm sm:block">
                 <div className="font-medium">{session.user.name ?? "Trader"}</div>
                 <div className="text-xs text-muted-foreground">{session.user.email}</div>
               </div>
-              <Button variant="outline" size="icon" title="Logout" onClick={() => signOut()}>
+              <Button variant="outline" size="icon" title={t.appShell.logout} onClick={() => signOut()}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <Button asChild>
-              <Link href="/login">Login</Link>
+              <Link href="/login">{t.appShell.login}</Link>
             </Button>
           )}
         </div>

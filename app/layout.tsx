@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
 import { AppShell } from "@/components/app-shell";
+import { I18nProvider } from "@/components/i18n-provider";
 import { authOptions } from "@/lib/auth";
+import { getCurrentLocale } from "@/lib/i18n-server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,11 +18,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
+  const locale = getCurrentLocale();
 
   return (
-    <html lang="de" className="dark">
+    <html lang={locale} className="dark">
       <body>
-        <AppShell session={session}>{children}</AppShell>
+        <I18nProvider initialLocale={locale}>
+          <AppShell session={session}>{children}</AppShell>
+        </I18nProvider>
       </body>
     </html>
   );

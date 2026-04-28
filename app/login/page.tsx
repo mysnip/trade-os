@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { useI18n } from "@/components/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [email, setEmail] = useState("demo@tradeos.ai");
   const [password, setPassword] = useState("demo");
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (result?.error) {
-      setError("Login fehlgeschlagen.");
+      setError(t.login.failed);
       return;
     }
     router.push("/dashboard");
@@ -42,20 +44,18 @@ export default function LoginPage() {
         <CardHeader className="space-y-4">
           <BrandLogo markClassName="h-11 w-11" />
           <div>
-            <CardTitle className="text-2xl">Tradelyst</CardTitle>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Organisiere deine Trades, erkenne Muster und analysiere deinen Prozess.
-            </p>
+            <CardTitle className="text-2xl">{t.login.title}</CardTitle>
+            <p className="mt-2 text-sm text-muted-foreground">{t.login.subtitle}</p>
           </div>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.login.email}</Label>
               <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Passwort</Label>
+              <Label htmlFor="password">{t.login.password}</Label>
               <Input
                 id="password"
                 type="password"
@@ -66,11 +66,9 @@ export default function LoginPage() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Login
+              {t.login.submit}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Demo: demo@tradeos.ai / demo. Dieses MVP speichert keine Klartext-Passwörter.
-            </p>
+            <p className="text-xs text-muted-foreground">{t.login.demo}</p>
           </form>
         </CardContent>
       </Card>
