@@ -12,7 +12,7 @@ Tradelyst ist keine Signal-Plattform und keine Anlageberatung. Die App analysier
 - shadcn/ui-artige Komponenten
 - PostgreSQL
 - Prisma ORM
-- Auth.js / NextAuth Credentials Demo Login
+- Auth.js / NextAuth mit PrismaAdapter und invite-only Credentials Login
 - OpenAI API für optionale AI Insights
 - Recharts
 - CSV/XLSX Import
@@ -42,12 +42,21 @@ npm run dev
 
 Dann öffnen: `http://localhost:3000`
 
-Demo Login:
+Demo Login nach `npm run db:seed`:
 
 ```txt
 demo@tradeos.ai
 demo
 ```
+
+Neue User werden nicht per Self-Signup angelegt. Erzeuge stattdessen einen Invite-Link:
+
+```bash
+npm run invite:create -- trader@example.com "Trader Name" 7
+```
+
+Der Befehl gibt einen Link wie `/invite/<token>` aus. Der eingeladene User setzt dort sein Passwort
+und kann sich danach per Email/Passwort einloggen.
 
 ## Linux VServer Deployment
 
@@ -78,6 +87,7 @@ Enthalten sind:
 - `BrokerConnection`
 - `BrokerAccount`
 - `BrokerSyncJob`
+- `Invite`
 - Auth.js Tabellen: `Account`, `Session`, `VerificationToken`
 
 Enums:
