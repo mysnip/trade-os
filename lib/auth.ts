@@ -1,9 +1,13 @@
 import type { NextAuthOptions } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { compare } from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import { prisma } from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma) as Adapter,
   session: {
     strategy: "jwt"
   },
@@ -12,23 +16,29 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     CredentialsProvider({
-      name: "Demo Login",
+      name: "Email and password",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         const email = credentials?.email?.toLowerCase().trim();
-        if (!email) return null;
+        const password = credentials?.password;
+        if (!email || !password) return null;
 
-        const user = await prisma.user.upsert({
+        const user = await prisma.user.findUnique({
           where: { email },
-          create: {
-            email,
-            name: email === "demo@tradeos.ai" ? "Demo Trader" : email.split("@")[0]
-          },
-          update: {}
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            passwordHash: true
+          }
         });
+        if (!user?.passwordHash) return null;
+
+        const validPassword = await compare(password, user.passwordHash);
+        if (!validPassword) return null;
 
         return {
           id: user.id,
