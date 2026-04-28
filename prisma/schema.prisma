@@ -52,6 +52,7 @@ model User {
   id            String      @id @default(cuid())
   email         String      @unique
   name          String?
+  passwordHash  String?
   emailVerified DateTime?
   image         String?
   createdAt     DateTime    @default(now())
@@ -65,6 +66,26 @@ model User {
   brokerConnections BrokerConnection[]
   brokerAccounts    BrokerAccount[]
   brokerSyncJobs    BrokerSyncJob[]
+  createdInvites    Invite[]     @relation("InvitesCreated")
+  acceptedInvite    Invite?      @relation("InviteAccepted")
+}
+
+model Invite {
+  id           String    @id @default(cuid())
+  email        String
+  name         String?
+  tokenHash    String    @unique
+  invitedById  String?
+  acceptedById String?   @unique
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  invitedBy    User?     @relation("InvitesCreated", fields: [invitedById], references: [id], onDelete: SetNull)
+  acceptedBy   User?     @relation("InviteAccepted", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model Account {
