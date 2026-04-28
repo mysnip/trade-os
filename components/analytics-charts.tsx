@@ -13,6 +13,7 @@ import {
   YAxis
 } from "recharts";
 
+import { useI18n } from "@/components/i18n-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AnalyticsResult, GroupMetric } from "@/lib/analytics/metrics";
 
@@ -49,11 +50,13 @@ function BarMetricChart({ title, data }: { title: string; data: GroupMetric[] })
 }
 
 export function AnalyticsCharts({ metrics }: { metrics: AnalyticsResult }) {
+  const { t } = useI18n();
+
   return (
     <div className="grid gap-6 xl:grid-cols-2">
       <Card className="xl:col-span-2">
         <CardHeader>
-          <CardTitle>PnL over time</CardTitle>
+          <CardTitle>{t.charts.pnlOverTime}</CardTitle>
         </CardHeader>
         <CardContent className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -74,19 +77,19 @@ export function AnalyticsCharts({ metrics }: { metrics: AnalyticsResult }) {
         </CardContent>
       </Card>
 
-      <BarMetricChart title="PnL by Instrument" data={metrics.pnlByInstrument} />
-      <BarMetricChart title="PnL by Weekday" data={metrics.pnlByWeekday} />
-      <BarMetricChart title="PnL by Hour" data={metrics.pnlByHour} />
-      <BarMetricChart title="Session Performance" data={metrics.pnlBySession} />
-      <BarMetricChart title="Long vs Short Performance" data={metrics.pnlByDirection} />
+      <BarMetricChart title={t.charts.pnlByInstrument} data={metrics.pnlByInstrument} />
+      <BarMetricChart title={t.charts.pnlByWeekday} data={metrics.pnlByWeekday} />
+      <BarMetricChart title={t.charts.pnlByHour} data={metrics.pnlByHour} />
+      <BarMetricChart title={t.charts.sessionPerformance} data={metrics.pnlBySession} />
+      <BarMetricChart title={t.charts.longVsShort} data={metrics.pnlByDirection} />
       <BarMetricChart
-        title="R-Multiple Distribution"
+        title={t.charts.rDistribution}
         data={metrics.rDistribution.map((item) => ({ ...item, netPnl: item.trades }))}
       />
 
       <Card className="xl:col-span-2">
         <CardHeader>
-          <CardTitle>Winrate by Setup</CardTitle>
+          <CardTitle>{t.charts.winrateBySetup}</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">

@@ -82,7 +82,26 @@ const de = {
     resultSummary: "{imported} von {total} Zeilen importiert, {failed} fehlerhaft.",
     row: "Zeile",
     field: "Feld",
-    error: "Fehler"
+    error: "Fehler",
+    fieldLabels: {
+      broker: "Broker",
+      accountName: "Konto",
+      instrument: "Symbol / Instrument",
+      direction: "Kauf/Verkauf / Richtung",
+      entryTime: "Open Time / Entry Time",
+      exitTime: "Close Time / Exit Time",
+      entryPrice: "Open Price / Entry Price",
+      exitPrice: "Close Price / Exit Price",
+      quantity: "Menge / Kontrakte",
+      grossPnl: "Brutto PnL",
+      netPnl: "Netto PnL / Gewinn",
+      commission: "Kommission",
+      fees: "Gebühren",
+      riskAmount: "Risikobetrag",
+      stopLoss: "Stop Loss",
+      takeProfit: "Take Profit",
+      notes: "Notizen"
+    }
   },
   trades: {
     title: "Trade Journal",
@@ -104,10 +123,17 @@ const de = {
     date: "Datum",
     instrument: "Instrument",
     direction: "Direction",
+    outcome: "Gewinn/Verlust",
     session: "Session",
     setup: "Setup",
     tags: "Tags",
     editTrade: "Trade bearbeiten",
+    sessionLabels: {
+      ASIA: "Asia",
+      LONDON: "London",
+      NEW_YORK: "New York",
+      OTHER: "Sonstige"
+    },
     fields: {
       broker: "Broker",
       account: "Account",
@@ -315,7 +341,26 @@ const en: Dictionary = {
     resultSummary: "{imported} of {total} rows imported, {failed} invalid.",
     row: "Row",
     field: "Field",
-    error: "Error"
+    error: "Error",
+    fieldLabels: {
+      broker: "Broker",
+      accountName: "Account",
+      instrument: "Symbol / instrument",
+      direction: "Buy/Sell / direction",
+      entryTime: "Open time / entry time",
+      exitTime: "Close time / exit time",
+      entryPrice: "Open price / entry price",
+      exitPrice: "Close price / exit price",
+      quantity: "Quantity / contracts",
+      grossPnl: "Gross PnL",
+      netPnl: "Net PnL / profit",
+      commission: "Commission",
+      fees: "Fees",
+      riskAmount: "Risk amount",
+      stopLoss: "Stop loss",
+      takeProfit: "Take profit",
+      notes: "Notes"
+    }
   },
   trades: {
     title: "Trade Journal",
@@ -337,10 +382,17 @@ const en: Dictionary = {
     date: "Date",
     instrument: "Instrument",
     direction: "Direction",
+    outcome: "Win/Loss",
     session: "Session",
     setup: "Setup",
     tags: "Tags",
     editTrade: "Edit trade",
+    sessionLabels: {
+      ASIA: "Asia",
+      LONDON: "London",
+      NEW_YORK: "New York",
+      OTHER: "Other"
+    },
     fields: {
       broker: "Broker",
       account: "Account",

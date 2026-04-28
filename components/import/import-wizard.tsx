@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Papa from "papaparse";
 import { CheckCircle2, FileSpreadsheet, Loader2, Upload, XCircle } from "lucide-react";
 
+import { useI18n } from "@/components/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,6 +17,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { detectAdapter, importAdapters } from "@/lib/import/adapters";
+import { interpolate } from "@/lib/i18n";
 import type { ColumnMapping, ImportField, RawImportRow, ValidationIssue } from "@/lib/import/types";
 import { importFieldLabels, requiredImportFields } from "@/lib/import/types";
 
@@ -30,6 +32,7 @@ type ImportResult = {
 };
 
 export function ImportWizard() {
+  const { t } = useI18n();
   const [filename, setFilename] = useState("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<RawImportRow[]>([]);
@@ -92,7 +95,7 @@ export function ImportWizard() {
     const body = await response.json();
     setLoading(false);
     if (!response.ok) {
-      setError(body.error ?? "Import fehlgeschlagen.");
+      setError(body.error ?? t.importWizard.failed);
       return;
     }
     setResult(body);
@@ -102,15 +105,13 @@ export function ImportWizard() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>1. Datei hochladen</CardTitle>
+          <CardTitle>{t.importWizard.uploadTitle}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed bg-background/50 px-4 text-center hover:bg-secondary/40">
             <FileSpreadsheet className="mb-3 h-8 w-8 text-primary" />
-            <span className="font-medium">CSV oder XLSX auswählen</span>
-            <span className="mt-1 text-sm text-muted-foreground">
-              Generic, Tradovate, NinjaTrader und ähnliche Broker-Exports
-            </span>
+            <span className="font-medium">{t.importWizard.chooseFile}</span>
+            <span className="mt-1 text-sm text-muted-foreground">{t.importWizard.fileHelp}</span>
             <input
               type="file"
               accept=".csv,.xlsx,.xls"
@@ -121,19 +122,19 @@ export function ImportWizard() {
               }}
             />
           </label>
-          {filename ? <div className="text-sm text-muted-foreground">Geladen: {filename}</div> : null}
+          {filename ? <div className="text-sm text-muted-foreground">{t.importWizard.loaded}: {filename}</div> : null}
         </CardContent>
       </Card>
 
       {headers.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>2. Quelle und Spalten-Mapping</CardTitle>
+            <CardTitle>{t.importWizard.mappingTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="grid gap-4 md:grid-cols-3">
               <div>
-                <div className="mb-2 text-sm font-medium">Import-Quelle</div>
+                <div className="mb-2 text-sm font-medium">{t.importWizard.source}</div>
                 <Select value={source} onValueChange={setSource}>
                   <SelectTrigger>
                     <SelectValue />
@@ -149,11 +150,11 @@ export function ImportWizard() {
               </div>
               <div className="rounded-md border p-3 text-sm">
                 <div className="font-medium">{rows.length}</div>
-                <div className="text-muted-foreground">erkannte Zeilen</div>
+                <div className="text-muted-foreground">{t.importWizard.detectedRows}</div>
               </div>
               <div className="rounded-md border p-3 text-sm">
                 <div className="font-medium">{headers.length}</div>
-                <div className="text-muted-foreground">erkannte Spalten</div>
+                <div className="text-muted-foreground">{t.importWizard.detectedColumns}</div>
               </div>
             </div>
 
@@ -161,7 +162,7 @@ export function ImportWizard() {
               {fields.map((field) => (
                 <div key={field} className="space-y-2">
                   <div className="text-sm font-medium">
-                    {importFieldLabels[field]}
+                    {t.importWizard.fieldLabels[field]}
                     {requiredImportFields.includes(field) ? <span className="text-primary"> *</span> : null}
                   </div>
                   <Select
@@ -177,7 +178,7 @@ export function ImportWizard() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">Nicht mappen</SelectItem>
+                      <SelectItem value="__none__">{t.importWizard.doNotMap}</SelectItem>
                       {headers.map((header) => (
                         <SelectItem key={header} value={header}>
                           {header}
@@ -191,7 +192,7 @@ export function ImportWizard() {
 
             {missingRequired.length > 0 ? (
               <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                Pflichtfelder fehlen: {missingRequired.map((field) => importFieldLabels[field]).join(", ")}
+                {t.importWizard.missingRequired}: {missingRequired.map((field) => t.importWizard.fieldLabels[field]).join(", ")}
               </div>
             ) : null}
           </CardContent>
@@ -201,7 +202,7 @@ export function ImportWizard() {
       {rows.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>3. Vorschau und Import</CardTitle>
+            <CardTitle>{t.importWizard.previewTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Table>
@@ -225,7 +226,7 @@ export function ImportWizard() {
 
             <Button onClick={submitImport} disabled={loading || missingRequired.length > 0}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              Trades importieren
+              {t.importWizard.importTrades}
             </Button>
           </CardContent>
         </Card>
@@ -243,21 +244,25 @@ export function ImportWizard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-primary" />
-              Import-Ergebnis
+              {t.importWizard.resultTitle}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>
-              {result.rowsImported} von {result.rowsTotal} Zeilen importiert, {result.rowsFailed} fehlerhaft.
+              {interpolate(t.importWizard.resultSummary, {
+                imported: result.rowsImported,
+                total: result.rowsTotal,
+                failed: result.rowsFailed
+              })}
             </div>
             {result.errorLog.length > 0 ? (
               <div className="max-h-56 overflow-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Zeile</TableHead>
-                      <TableHead>Feld</TableHead>
-                      <TableHead>Fehler</TableHead>
+                      <TableHead>{t.importWizard.row}</TableHead>
+                      <TableHead>{t.importWizard.field}</TableHead>
+                      <TableHead>{t.importWizard.error}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
