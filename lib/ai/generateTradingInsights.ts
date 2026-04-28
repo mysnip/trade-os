@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { detectTradingPatterns } from "@/lib/analytics/patterns";
+import type { Locale } from "@/lib/i18n";
 import { prisma } from "@/lib/prisma";
 
 type DateRange = {
@@ -59,18 +60,30 @@ const jsonSchema = {
   }
 };
 
-function fallbackInsights(trades: MetricTrade[]): GeneratedInsight[] {
+function fallbackInsights(trades: MetricTrade[], locale: Locale): GeneratedInsight[] {
   const metrics = calculateAnalytics(trades);
-  const patterns = detectTradingPatterns(trades, metrics);
+  const patterns = detectTradingPatterns(trades, metrics, locale);
 
   if (patterns.length === 0) {
+    const emptyCopy =
+      locale === "en"
+        ? {
+            title: "More data improves the analysis",
+            summary: "There are not enough trades yet to separate robust patterns with confidence.",
+            suggestedAction: "Import more trades and tag setups consistently before deriving decisions from patterns."
+          }
+        : {
+            title: "Mehr Daten verbessern die Analyse",
+            summary: "Es sind noch nicht genug Trades vorhanden, um robuste Muster sicher zu unterscheiden.",
+            suggestedAction: "Importiere weitere Trades und tagge Setups konsequent, bevor du Entscheidungen aus Mustern ableitest."
+          };
     return [
       {
         insightType: "process" as const,
-        title: "Mehr Daten verbessern die Analyse",
-        summary: "Es sind noch nicht genug Trades vorhanden, um robuste Muster sicher zu unterscheiden.",
+        title: emptyCopy.title,
+        summary: emptyCopy.summary,
         evidence: { tradeCount: metrics.tradeCount },
-        suggestedAction: "Importiere weitere Trades und tagge Setups konsequent, bevor du Entscheidungen aus Mustern ableitest.",
+        suggestedAction: emptyCopy.suggestedAction,
         confidenceScore: 0.55
       }
     ];
@@ -87,14 +100,18 @@ function fallbackInsights(trades: MetricTrade[]): GeneratedInsight[] {
     summary: pattern.summary,
     evidence: pattern.evidence,
     suggestedAction:
-      pattern.type === "profitable_cluster"
-        ? "Teste dieses Setup isoliert weiter und dokumentiere Entry-, Exit- und Invalidation-Kriterien sauber."
-        : "Reduziere die Positionsgröße oder pausiere dieses Muster testweise, bis du klare Prozessregeln definiert hast.",
+      locale === "en"
+        ? pattern.type === "profitable_cluster"
+          ? "Keep testing this setup in isolation and document entry, exit, and invalidation criteria cleanly."
+          : "Reduce size or pause this pattern temporarily until you define clear process rules."
+        : pattern.type === "profitable_cluster"
+          ? "Teste dieses Setup isoliert weiter und dokumentiere Entry-, Exit- und Invalidation-Kriterien sauber."
+          : "Reduziere die Positionsgröße oder pausiere dieses Muster testweise, bis du klare Prozessregeln definiert hast.",
     confidenceScore: pattern.confidenceScore
   }));
 }
 
-export async function generateTradingInsights(userId: string, dateRange?: DateRange) {
+export async function generateTradingInsights(userId: string, dateRange?: DateRange, locale: Locale = "de") {
   const trades = await prisma.trade.findMany({
     where: {
       userId,
@@ -113,8 +130,8 @@ export async function generateTradingInsights(userId: string, dateRange?: DateRa
 
   const metricTrades = trades as unknown as MetricTrade[];
   const metrics = calculateAnalytics(metricTrades);
-  const deterministicPatterns = detectTradingPatterns(metricTrades, metrics);
-  let insights: GeneratedInsight[] = fallbackInsights(metricTrades);
+  const deterministicPatterns = detectTradingPatterns(metricTrades, metrics, locale);
+  let insights: GeneratedInsight[] = fallbackInsights(metricTrades, locale);
 
   if (process.env.OPENAI_API_KEY && trades.length >= 3) {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -134,6 +151,7 @@ export async function generateTradingInsights(userId: string, dateRange?: DateRa
           role: "user",
           content: JSON.stringify({
             product: "Tradelyst",
+            outputLanguage: locale === "en" ? "English" : "German",
             constraint:
               "No Anlageberatung, no signal generation, no recommendation to enter or exit any future trade.",
             metrics,

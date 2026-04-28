@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { detectTradingPatterns } from "@/lib/analytics/patterns";
-import { getCurrentDictionary } from "@/lib/i18n-server";
+import { getCurrentDictionary, getCurrentLocale } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
@@ -15,6 +15,7 @@ import { formatCurrency, formatPercent } from "@/lib/utils";
 export default async function DashboardPage() {
   const userId = await requireUserId();
   const t = getCurrentDictionary();
+  const locale = getCurrentLocale();
   const trades = await prisma.trade.findMany({
     where: { userId },
     include: { setup: { select: { name: true } } },
@@ -26,13 +27,13 @@ export default async function DashboardPage() {
     take: 3
   });
   const metrics = calculateAnalytics(trades as unknown as MetricTrade[]);
-  const patterns = detectTradingPatterns(trades as unknown as MetricTrade[], metrics);
+  const patterns = detectTradingPatterns(trades as unknown as MetricTrade[], metrics, locale);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
+          <h1 className="text-2xl font-semibold">{t.dashboard.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
         <Button asChild>
