@@ -60,6 +60,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   trades        Trade[]
+  tradingAccounts TradingAccount[]
   setups        Setup[]
   importJobs    ImportJob[]
   aiInsights    AIInsight[]
@@ -68,6 +69,22 @@ model User {
   brokerSyncJobs    BrokerSyncJob[]
   createdInvites    Invite[]     @relation("InvitesCreated")
   acceptedInvites   Invite[]     @relation("InviteAccepted")
+}
+
+model TradingAccount {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  broker    String?
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades    Trade[]
+  importJobs ImportJob[]
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
 }
 
 model Invite {
@@ -125,6 +142,7 @@ model VerificationToken {
 model Trade {
   id            String           @id @default(cuid())
   userId        String
+  tradingAccountId String?
   broker        String?
   accountName   String?
   instrument    String
@@ -153,9 +171,11 @@ model Trade {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   setup         Setup?           @relation(fields: [setupId], references: [id], onDelete: SetNull)
+  tradingAccount TradingAccount? @relation(fields: [tradingAccountId], references: [id], onDelete: SetNull)
   user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, entryTime])
+  @@index([userId, tradingAccountId])
   @@index([userId, instrument])
   @@index([userId, setupId])
   @@index([userId, session])
@@ -182,6 +202,7 @@ model Setup {
 model ImportJob {
   id           String          @id @default(cuid())
   userId       String
+  tradingAccountId String?
   source       String
   filename     String
   status       ImportJobStatus @default(PENDING)
@@ -191,8 +212,10 @@ model ImportJob {
   errorLog     Json?
   createdAt    DateTime       @default(now())
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tradingAccount TradingAccount? @relation(fields: [tradingAccountId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+  @@index([userId, tradingAccountId])
 }
 
 model AIInsight {
