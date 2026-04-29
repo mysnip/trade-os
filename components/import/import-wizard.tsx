@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { detectAdapter, importAdapters } from "@/lib/import/adapters";
 import { interpolate } from "@/lib/i18n";
+import type { TradingAccountOption } from "@/lib/accounts";
 import type { ColumnMapping, ImportField, RawImportRow, ValidationIssue } from "@/lib/import/types";
 import { importFieldLabels, requiredImportFields } from "@/lib/import/types";
 
@@ -31,8 +32,9 @@ type ImportResult = {
   errorLog: ValidationIssue[];
 };
 
-export function ImportWizard() {
+export function ImportWizard({ accounts }: { accounts: TradingAccountOption[] }) {
   const { t } = useI18n();
+  const [tradingAccountId, setTradingAccountId] = useState("");
   const [filename, setFilename] = useState("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<RawImportRow[]>([]);
@@ -90,7 +92,7 @@ export function ImportWizard() {
     const response = await fetch("/api/import/commit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename, source, rows, mapping })
+      body: JSON.stringify({ filename, source, rows, mapping, tradingAccountId })
     });
     const body = await response.json();
     setLoading(false);
@@ -108,6 +110,22 @@ export function ImportWizard() {
           <CardTitle>{t.importWizard.uploadTitle}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="text-sm font-medium">{t.accounts.selectorLabel}</div>
+            <Select value={tradingAccountId} onValueChange={setTradingAccountId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.accounts.required} />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {accounts.length === 0 ? <p className="text-xs text-destructive">{t.accounts.noAccounts}</p> : null}
+          </div>
           <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed bg-background/50 px-4 text-center hover:bg-secondary/40">
             <FileSpreadsheet className="mb-3 h-8 w-8 text-primary" />
             <span className="font-medium">{t.importWizard.chooseFile}</span>
@@ -224,7 +242,7 @@ export function ImportWizard() {
               </TableBody>
             </Table>
 
-            <Button onClick={submitImport} disabled={loading || missingRequired.length > 0}>
+            <Button onClick={submitImport} disabled={loading || missingRequired.length > 0 || !tradingAccountId}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               {t.importWizard.importTrades}
             </Button>
