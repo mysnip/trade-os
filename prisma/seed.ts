@@ -23,6 +23,16 @@ async function main() {
   await prisma.trade.deleteMany({ where: { userId: user.id } });
   await prisma.setup.deleteMany({ where: { userId: user.id } });
   await prisma.importJob.deleteMany({ where: { userId: user.id } });
+  await prisma.tradingAccount.deleteMany({ where: { userId: user.id } });
+
+  const tradingAccount = await prisma.tradingAccount.create({
+    data: {
+      userId: user.id,
+      name: "Evaluation",
+      broker: "Seed",
+      currency: "USD"
+    }
+  });
 
   const ifvg = await prisma.setup.create({
     data: {
@@ -68,6 +78,7 @@ async function main() {
   await prisma.trade.createMany({
     data: trades.map((trade) => ({
       userId: user.id,
+      tradingAccountId: tradingAccount.id,
       broker: "Seed",
       accountName: "Evaluation",
       instrument: trade[0],
@@ -94,6 +105,7 @@ async function main() {
   await prisma.importJob.create({
     data: {
       userId: user.id,
+      tradingAccountId: tradingAccount.id,
       source: "seed",
       filename: "seed-demo-trades.csv",
       status: "COMPLETED",

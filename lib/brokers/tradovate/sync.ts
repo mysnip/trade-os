@@ -45,6 +45,24 @@ export async function syncTradovateConnection(connectionId: string) {
 }
 
 export async function syncTradovateAccount(connection: BrokerConnection, account: BrokerAccount) {
+  const tradingAccount = await prisma.tradingAccount.upsert({
+    where: {
+      userId_name: {
+        userId: connection.userId,
+        name: account.name
+      }
+    },
+    create: {
+      userId: connection.userId,
+      name: account.name,
+      broker: "Tradovate",
+      currency: "USD"
+    },
+    update: {
+      broker: "Tradovate"
+    }
+  });
+
   const job = await prisma.brokerSyncJob.create({
     data: {
       userId: connection.userId,
@@ -89,6 +107,7 @@ export async function syncTradovateAccount(connection: BrokerConnection, account
       await prisma.trade.create({
         data: {
           userId: connection.userId,
+          tradingAccountId: tradingAccount.id,
           broker: "Tradovate",
           accountName: account.name,
           instrument: trade.instrument,
