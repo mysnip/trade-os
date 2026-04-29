@@ -4,7 +4,7 @@ import { generateInsightsAction } from "@/app/insights/actions";
 import { AccountSelector } from "@/components/accounts/account-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseAccountIds } from "@/lib/accounts";
+import { buildInsightAccountWhere, parseAccountIds } from "@/lib/accounts";
 import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
@@ -19,7 +19,7 @@ export default async function InsightsPage({
   const selectedAccountIds = parseAccountIds(searchParams);
   const [insights, tradingAccounts] = await Promise.all([
     prisma.aIInsight.findMany({
-      where: { userId },
+      where: buildInsightAccountWhere(userId, selectedAccountIds),
       orderBy: { createdAt: "desc" },
       take: 30
     }),

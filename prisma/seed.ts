@@ -120,6 +120,7 @@ async function main() {
     data: {
       userId: user.id,
       insightType: "profitable_pattern",
+      accountIds: [tradingAccount.id],
       title: "iFVG Retest zeigt positiven Erwartungswert",
       summary: "Die Demo-Daten zeigen starke Ergebnisse bei iFVG-Retest-Trades in der New-York-Session.",
       evidence: { setup: "iFVG Retest", note: "Seed data only" },

@@ -6,7 +6,7 @@ import { ComplianceNote } from "@/components/compliance-note";
 import { KpiCard } from "@/components/kpi-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { buildTradeAccountWhere, parseAccountIds } from "@/lib/accounts";
+import { buildInsightAccountWhere, buildTradeAccountWhere, parseAccountIds } from "@/lib/accounts";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { detectTradingPatterns } from "@/lib/analytics/patterns";
 import { getCurrentDictionary, getCurrentLocale } from "@/lib/i18n-server";
@@ -33,7 +33,7 @@ export default async function DashboardPage({
     orderBy: { name: "asc" }
   });
   const insights = await prisma.aIInsight.findMany({
-    where: { userId },
+    where: buildInsightAccountWhere(userId, selectedAccountIds),
     orderBy: { createdAt: "desc" },
     take: 3
   });

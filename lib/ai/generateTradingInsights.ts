@@ -189,6 +189,7 @@ export async function generateTradingInsights(
     data: insights.map((insight) => ({
       userId,
       insightType: insight.insightType,
+      accountIds,
       title: insight.title,
       summary: insight.summary,
       evidence: insight.evidence as Prisma.InputJsonValue,
