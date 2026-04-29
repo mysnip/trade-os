@@ -1,20 +1,33 @@
 import { TradeTable, type TradeRow } from "@/components/trades/trade-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { parseAccountIds, buildTradeAccountWhere } from "@/lib/accounts";
 import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { toNumber } from "@/lib/utils";
 
-export default async function TradesPage() {
+export default async function TradesPage({
+  searchParams
+}: {
+  searchParams?: { accountIds?: string | string[] };
+}) {
   const userId = await requireUserId();
   const t = getCurrentDictionary();
-  const [trades, setups] = await Promise.all([
+  const selectedAccountIds = parseAccountIds(searchParams);
+  const [trades, setups, tradingAccounts] = await Promise.all([
     prisma.trade.findMany({
-      where: { userId },
-      include: { setup: { select: { id: true, name: true } } },
+      where: buildTradeAccountWhere(userId, selectedAccountIds),
+      include: {
+        setup: { select: { id: true, name: true } },
+        tradingAccount: { select: { id: true, name: true } }
+      },
       orderBy: { entryTime: "desc" }
     }),
     prisma.setup.findMany({
+      where: { userId },
+      orderBy: { name: "asc" }
+    }),
+    prisma.tradingAccount.findMany({
       where: { userId },
       orderBy: { name: "asc" }
     })
@@ -22,6 +35,8 @@ export default async function TradesPage() {
 
   const rows: TradeRow[] = trades.map((trade) => ({
     id: trade.id,
+    tradingAccountId: trade.tradingAccountId,
+    tradingAccountName: trade.tradingAccount?.name ?? trade.accountName,
     instrument: trade.instrument,
     direction: trade.direction,
     entryTime: trade.entryTime.toISOString(),
@@ -63,6 +78,13 @@ export default async function TradesPage() {
         <CardContent>
           <TradeTable
             trades={rows}
+            accounts={tradingAccounts.map((account) => ({
+              id: account.id,
+              name: account.name,
+              broker: account.broker,
+              currency: account.currency
+            }))}
+            selectedAccountIds={selectedAccountIds}
             setups={setups.map((setup) => ({
               id: setup.id,
               name: setup.name
