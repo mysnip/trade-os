@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 const payloadSchema = z.object({
   source: z.string().min(1),
   filename: z.string().min(1),
+  tradingAccountId: z.string().min(1),
   mapping: z.record(z.string(), z.string()),
   rows: z.array(z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])))
 });
@@ -26,10 +27,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { source, filename, mapping, rows } = parsed.data;
+  const { source, filename, mapping, rows, tradingAccountId } = parsed.data;
+  const tradingAccount = await prisma.tradingAccount.findFirst({
+    where: {
+      id: tradingAccountId,
+      userId: session.user.id
+    }
+  });
+  if (!tradingAccount) {
+    return NextResponse.json({ error: "Trading account is required." }, { status: 400 });
+  }
+
   const job = await prisma.importJob.create({
     data: {
       userId: session.user.id,
+      tradingAccountId: tradingAccount.id,
       source,
       filename,
       status: "PROCESSING",
@@ -53,8 +65,9 @@ export async function POST(request: Request) {
 
     validTrades.push({
       userId: session.user.id,
+      tradingAccountId: tradingAccount.id,
       broker: normalized.broker,
-      accountName: normalized.accountName,
+      accountName: tradingAccount.name,
       instrument: normalized.instrument!,
       direction: normalized.direction!,
       entryTime: normalized.entryTime!,
