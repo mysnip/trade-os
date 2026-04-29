@@ -1,35 +1,60 @@
 import { createSetupAction } from "@/app/setups/actions";
+import { AccountSelector } from "@/components/accounts/account-selector";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { parseAccountIds } from "@/lib/accounts";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
-export default async function SetupsPage() {
+export default async function SetupsPage({
+  searchParams
+}: {
+  searchParams?: { accountIds?: string | string[] };
+}) {
   const userId = await requireUserId();
   const t = getCurrentDictionary();
-  const setups = await prisma.setup.findMany({
-    where: { userId },
-    include: {
-      trades: {
-        include: { setup: { select: { name: true } } },
-        orderBy: { entryTime: "asc" }
-      }
-    },
-    orderBy: { createdAt: "desc" }
-  });
+  const selectedAccountIds = parseAccountIds(searchParams);
+  const [setups, tradingAccounts] = await Promise.all([
+    prisma.setup.findMany({
+      where: { userId },
+      include: {
+        trades: {
+          where: selectedAccountIds.length > 0 ? { tradingAccountId: { in: selectedAccountIds } } : undefined,
+          include: { setup: { select: { name: true } } },
+          orderBy: { entryTime: "asc" }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    }),
+    prisma.tradingAccount.findMany({
+      where: { userId },
+      orderBy: { name: "asc" }
+    })
+  ]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t.setups.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t.setups.subtitle}</p>
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="text-2xl font-semibold">{t.setups.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t.setups.subtitle}</p>
+        </div>
+        <AccountSelector
+          accounts={tradingAccounts.map((account) => ({
+            id: account.id,
+            name: account.name,
+            broker: account.broker,
+            currency: account.currency
+          }))}
+          selectedAccountIds={selectedAccountIds}
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[420px_1fr]">

@@ -1,20 +1,33 @@
 import { Brain, Sparkles } from "lucide-react";
 
 import { generateInsightsAction } from "@/app/insights/actions";
+import { AccountSelector } from "@/components/accounts/account-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { parseAccountIds } from "@/lib/accounts";
 import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 
-export default async function InsightsPage() {
+export default async function InsightsPage({
+  searchParams
+}: {
+  searchParams?: { accountIds?: string | string[] };
+}) {
   const userId = await requireUserId();
   const t = getCurrentDictionary();
-  const insights = await prisma.aIInsight.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 30
-  });
+  const selectedAccountIds = parseAccountIds(searchParams);
+  const [insights, tradingAccounts] = await Promise.all([
+    prisma.aIInsight.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 30
+    }),
+    prisma.tradingAccount.findMany({
+      where: { userId },
+      orderBy: { name: "asc" }
+    })
+  ]);
 
   return (
     <div className="space-y-6">
@@ -23,12 +36,24 @@ export default async function InsightsPage() {
           <h1 className="text-2xl font-semibold">{t.insights.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t.insights.subtitle}</p>
         </div>
-        <form action={generateInsightsAction}>
-          <Button type="submit">
-            <Sparkles className="h-4 w-4" />
-            {t.insights.generate}
-          </Button>
-        </form>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <AccountSelector
+            accounts={tradingAccounts.map((account) => ({
+              id: account.id,
+              name: account.name,
+              broker: account.broker,
+              currency: account.currency
+            }))}
+            selectedAccountIds={selectedAccountIds}
+          />
+          <form action={generateInsightsAction}>
+            <input type="hidden" name="accountIds" value={selectedAccountIds.join(",")} />
+            <Button type="submit">
+              <Sparkles className="h-4 w-4" />
+              {t.insights.generate}
+            </Button>
+          </form>
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">

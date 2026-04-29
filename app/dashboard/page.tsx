@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { AccountSelector } from "@/components/accounts/account-selector";
 import { AnalyticsCharts } from "@/components/analytics-charts";
 import { ComplianceNote } from "@/components/compliance-note";
 import { KpiCard } from "@/components/kpi-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { buildTradeAccountWhere, parseAccountIds } from "@/lib/accounts";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { detectTradingPatterns } from "@/lib/analytics/patterns";
 import { getCurrentDictionary, getCurrentLocale } from "@/lib/i18n-server";
@@ -12,14 +14,23 @@ import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams
+}: {
+  searchParams?: { accountIds?: string | string[] };
+}) {
   const userId = await requireUserId();
   const t = getCurrentDictionary();
   const locale = getCurrentLocale();
+  const selectedAccountIds = parseAccountIds(searchParams);
   const trades = await prisma.trade.findMany({
-    where: { userId },
+    where: buildTradeAccountWhere(userId, selectedAccountIds),
     include: { setup: { select: { name: true } } },
     orderBy: { entryTime: "asc" }
+  });
+  const tradingAccounts = await prisma.tradingAccount.findMany({
+    where: { userId },
+    orderBy: { name: "asc" }
   });
   const insights = await prisma.aIInsight.findMany({
     where: { userId },
@@ -36,9 +47,20 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold">{t.dashboard.title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t.dashboard.subtitle}</p>
         </div>
-        <Button asChild>
-          <Link href="/import">{t.dashboard.importTrades}</Link>
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <AccountSelector
+            accounts={tradingAccounts.map((account) => ({
+              id: account.id,
+              name: account.name,
+              broker: account.broker,
+              currency: account.currency
+            }))}
+            selectedAccountIds={selectedAccountIds}
+          />
+          <Button asChild>
+            <Link href="/import">{t.dashboard.importTrades}</Link>
+          </Button>
+        </div>
       </div>
 
       <ComplianceNote />

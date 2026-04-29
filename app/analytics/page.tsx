@@ -1,26 +1,50 @@
+import { AccountSelector } from "@/components/accounts/account-selector";
 import { AnalyticsCharts } from "@/components/analytics-charts";
 import { KpiCard } from "@/components/kpi-card";
+import { buildTradeAccountWhere, parseAccountIds } from "@/lib/accounts";
 import { calculateAnalytics, type MetricTrade } from "@/lib/analytics/metrics";
 import { getCurrentDictionary } from "@/lib/i18n-server";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams
+}: {
+  searchParams?: { accountIds?: string | string[] };
+}) {
   const userId = await requireUserId();
   const t = getCurrentDictionary();
-  const trades = await prisma.trade.findMany({
-    where: { userId },
-    include: { setup: { select: { name: true } } },
-    orderBy: { entryTime: "asc" }
-  });
+  const selectedAccountIds = parseAccountIds(searchParams);
+  const [trades, tradingAccounts] = await Promise.all([
+    prisma.trade.findMany({
+      where: buildTradeAccountWhere(userId, selectedAccountIds),
+      include: { setup: { select: { name: true } } },
+      orderBy: { entryTime: "asc" }
+    }),
+    prisma.tradingAccount.findMany({
+      where: { userId },
+      orderBy: { name: "asc" }
+    })
+  ]);
   const metrics = calculateAnalytics(trades as unknown as MetricTrade[]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t.analytics.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t.analytics.subtitle}</p>
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="text-2xl font-semibold">{t.analytics.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t.analytics.subtitle}</p>
+        </div>
+        <AccountSelector
+          accounts={tradingAccounts.map((account) => ({
+            id: account.id,
+            name: account.name,
+            broker: account.broker,
+            currency: account.currency
+          }))}
+          selectedAccountIds={selectedAccountIds}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
