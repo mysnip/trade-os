@@ -60,6 +60,25 @@ export async function deleteTradingAccountAction(formData: FormData) {
   revalidateAccountViews();
 }
 
+export async function deleteTradesForTradingAccountAction(formData: FormData) {
+  const userId = await requireUserId();
+  const id = z.string().min(1).parse(formData.get("id"));
+  const confirmName = z.string().min(1).parse(formData.get("confirmName"));
+  const account = await prisma.tradingAccount.findFirst({
+    where: { id, userId }
+  });
+  if (!account || account.name !== confirmName) return;
+
+  await prisma.trade.deleteMany({
+    where: {
+      userId,
+      tradingAccountId: account.id
+    }
+  });
+
+  revalidateAccountViews();
+}
+
 export async function updateTradovateAccountSelectionAction(formData: FormData) {
   const userId = await requireUserId();
   const selectedIds = new Set(formData.getAll("accountIds").map(String));
@@ -69,16 +88,43 @@ export async function updateTradovateAccountSelectionAction(formData: FormData) 
   });
   if (!connection) return;
 
-  await prisma.$transaction(
-    connection.accounts.map((account) =>
-      prisma.brokerAccount.update({
-        where: { id: account.id },
-        data: { enabled: selectedIds.has(account.id) }
-      })
-    )
-  );
+  await prisma.$transaction(async (tx) => {
+    for (const account of connection.accounts) {
+      const selected = selectedIds.has(account.id);
+      let tradingAccountId: string | null = account.tradingAccountId ?? null;
 
-  revalidatePath("/settings");
+      if (selected) {
+        const tradingAccount = await tx.tradingAccount.upsert({
+          where: {
+            userId_name: {
+              userId,
+              name: account.name
+            }
+          },
+          create: {
+            userId,
+            name: account.name,
+            broker: "Tradovate",
+            currency: "USD"
+          },
+          update: {
+            broker: "Tradovate"
+          }
+        });
+        tradingAccountId = tradingAccount.id;
+      }
+
+      await tx.brokerAccount.update({
+        where: { id: account.id },
+        data: {
+          enabled: selected,
+          tradingAccountId
+        }
+      });
+    }
+  });
+
+  revalidateAccountViews();
 }
 
 export async function refreshTradovateAccountsAction() {
