@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import { Edit, ImagePlus, Plus, Search, X } from "lucide-react";
 
 import { createTradeAction, updateTradeAction } from "@/app/trades/actions";
+import { AccountSelector } from "@/components/accounts/account-selector";
 import { useI18n } from "@/components/i18n-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,10 +23,13 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { interpolate } from "@/lib/i18n";
+import type { TradingAccountOption } from "@/lib/accounts";
 import { formatCurrency } from "@/lib/utils";
 
 export type TradeRow = {
   id: string;
+  tradingAccountId: string | null;
+  tradingAccountName: string | null;
   instrument: string;
   direction: "LONG" | "SHORT";
   entryTime: string;
@@ -59,7 +63,17 @@ export type SetupOption = {
   name: string;
 };
 
-export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: SetupOption[] }) {
+export function TradeTable({
+  trades,
+  accounts,
+  selectedAccountIds,
+  setups
+}: {
+  trades: TradeRow[];
+  accounts: TradingAccountOption[];
+  selectedAccountIds: string[];
+  setups: SetupOption[];
+}) {
   const { locale, t } = useI18n();
   const [query, setQuery] = useState("");
   const [instrument, setInstrument] = useState("all");
@@ -95,7 +109,8 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+        <AccountSelector accounts={accounts} selectedAccountIds={selectedAccountIds} />
         <Dialog>
           <DialogTrigger asChild>
             <Button>
@@ -109,6 +124,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
             </DialogHeader>
             <TradeForm
               action={createTradeAction}
+              accounts={accounts}
               allMistakeTags={allMistakeTags}
               setups={setups}
               submitLabel={t.trades.saveTrade}
@@ -169,6 +185,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
         <TableHeader>
           <TableRow>
             <TableHead>{t.trades.date}</TableHead>
+            <TableHead>{t.accounts.selectorLabel}</TableHead>
             <TableHead>{t.trades.instrument}</TableHead>
             <TableHead>{t.trades.direction}</TableHead>
             <TableHead>{t.trades.session}</TableHead>
@@ -183,6 +200,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
           {filtered.map((trade) => (
             <TableRow key={trade.id}>
               <TableCell>{new Date(trade.entryTime).toLocaleString(dateLocale)}</TableCell>
+              <TableCell>{trade.tradingAccountName ?? <span className="text-muted-foreground">{t.accounts.unassigned}</span>}</TableCell>
               <TableCell className="font-medium">{trade.instrument}</TableCell>
               <TableCell>{trade.direction}</TableCell>
               <TableCell>{t.trades.sessionLabels[trade.session]}</TableCell>
@@ -209,6 +227,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
                     </DialogHeader>
                     <TradeForm
                       action={updateTradeAction}
+                      accounts={accounts}
                       allMistakeTags={allMistakeTags}
                       trade={trade}
                       setups={setups}
@@ -241,12 +260,14 @@ function numberValue(value?: number | null) {
 
 function TradeForm({
   action,
+  accounts,
   allMistakeTags,
   trade,
   setups,
   submitLabel
 }: {
   action: (formData: FormData) => void | Promise<void>;
+  accounts: TradingAccountOption[];
   allMistakeTags: string[];
   trade?: TradeRow;
   setups: SetupOption[];
@@ -269,6 +290,19 @@ function TradeForm({
         <TabsContent value="essentials" className="space-y-4">
           <FormSection title={t.trades.formSections.essentials} description={t.trades.formSections.essentialsHelp}>
             <div className="grid gap-3 md:grid-cols-2">
+              <Field label={t.accounts.selectorLabel}>
+                <Select name="tradingAccountId" defaultValue={trade?.tradingAccountId ?? undefined}>
+                  <SelectTrigger><SelectValue placeholder={t.accounts.required} /></SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {accounts.length === 0 ? <p className="text-xs text-destructive">{t.accounts.noAccounts}</p> : null}
+              </Field>
               <Field label={t.trades.instrument}>
                 <Input name="instrument" defaultValue={trade?.instrument ?? ""} placeholder="NQ" required />
               </Field>
@@ -357,9 +391,6 @@ function TradeForm({
               </Field>
               <Field label={t.trades.fields.broker}>
                 <Input name="broker" defaultValue={trade?.broker ?? ""} placeholder="Tradovate" />
-              </Field>
-              <Field label={t.trades.fields.account}>
-                <Input name="accountName" defaultValue={trade?.accountName ?? ""} placeholder="Evaluation" />
               </Field>
               <Field label={t.trades.fields.importedFrom}>
                 <Input name="importedFrom" defaultValue={trade?.importedFrom ?? "manual"} />
