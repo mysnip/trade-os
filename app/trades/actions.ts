@@ -18,6 +18,7 @@ const nullableNumber = z
 
 const tradeFormSchema = z.object({
   id: z.string().optional(),
+  tradingAccountId: z.string().min(1),
   broker: z.string().optional(),
   accountName: z.string().optional(),
   instrument: z.string().min(1),
@@ -56,9 +57,10 @@ function parseDateTime(date: string, time?: string | null) {
   return new Date(`${date}T${time || "00:00"}:00`);
 }
 
-function getTradeData(formData: FormData) {
+async function getTradeData(userId: string, formData: FormData) {
   const parsed = tradeFormSchema.parse({
     id: formData.get("id") || undefined,
+    tradingAccountId: formData.get("tradingAccountId"),
     broker: formData.get("broker") || undefined,
     accountName: formData.get("accountName") || undefined,
     instrument: formData.get("instrument"),
@@ -91,10 +93,17 @@ function getTradeData(formData: FormData) {
   const entryTime = parseDateTime(parsed.entryDate, parsed.entryTime);
   const riskAmount = parsed.riskAmount && parsed.riskAmount > 0 ? parsed.riskAmount : null;
   const rMultiple = parsed.rMultiple ?? (riskAmount ? parsed.netPnl / riskAmount : null);
+  const tradingAccount = await prisma.tradingAccount.findFirstOrThrow({
+    where: {
+      id: parsed.tradingAccountId,
+      userId
+    }
+  });
 
   return {
+    tradingAccountId: tradingAccount.id,
     broker: optionalText(parsed.broker),
-    accountName: optionalText(parsed.accountName),
+    accountName: tradingAccount.name,
     instrument: parsed.instrument.trim().toUpperCase(),
     direction: parsed.direction,
     entryTime,
@@ -131,7 +140,7 @@ export async function createTradeAction(formData: FormData) {
   await prisma.trade.create({
     data: {
       userId,
-      ...getTradeData(formData)
+      ...(await getTradeData(userId, formData))
     }
   });
 
@@ -147,7 +156,7 @@ export async function updateTradeAction(formData: FormData) {
       id,
       userId
     },
-    data: getTradeData(formData)
+    data: await getTradeData(userId, formData)
   });
 
   revalidateTradeViews();
