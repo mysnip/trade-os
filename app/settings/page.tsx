@@ -1,3 +1,4 @@
+import { AccountManagement } from "@/components/accounts/account-management";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,10 @@ export default async function SettingsPage({
   const userId = await requireUserId();
   const t = getCurrentDictionary();
   const locale = getCurrentLocale();
-  const tradovateConnection = await loadTradovateConnection(userId);
+  const [tradovateConnection, tradingAccounts] = await Promise.all([
+    loadTradovateConnection(userId),
+    loadTradingAccounts(userId)
+  ]);
   const tradovateNotice = getTradovateNotice(searchParams?.tradovate, t);
 
   return (
@@ -30,6 +34,8 @@ export default async function SettingsPage({
           {tradovateNotice}
         </div>
       ) : null}
+
+      <AccountManagement accounts={tradingAccounts} />
 
       <TradovateSettings connection={tradovateConnection} copy={t.tradovate} locale={locale} neverLabel={t.common.never} />
 
@@ -129,6 +135,26 @@ async function loadTradovateConnection(userId: string) {
     console.error(error);
     return null;
   }
+}
+
+async function loadTradingAccounts(userId: string) {
+  const accounts = await prisma.tradingAccount.findMany({
+    where: { userId },
+    include: {
+      _count: {
+        select: { trades: true }
+      }
+    },
+    orderBy: { name: "asc" }
+  });
+
+  return accounts.map((account) => ({
+    id: account.id,
+    name: account.name,
+    broker: account.broker,
+    currency: account.currency,
+    tradeCount: account._count.trades
+  }));
 }
 
 function getTradovateNotice(status: string | undefined, t: ReturnType<typeof getCurrentDictionary>) {
