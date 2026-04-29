@@ -82,6 +82,7 @@ model TradingAccount {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   trades    Trade[]
   importJobs ImportJob[]
+  brokerAccounts BrokerAccount[]
 
   @@unique([userId, name])
   @@index([userId, createdAt])
@@ -263,6 +264,7 @@ model BrokerAccount {
   id                String           @id @default(cuid())
   userId            String
   connectionId      String
+  tradingAccountId  String?
   provider          BrokerProvider
   externalAccountId String
   name              String
@@ -274,9 +276,11 @@ model BrokerAccount {
   updatedAt         DateTime         @updatedAt
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   connection        BrokerConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  tradingAccount    TradingAccount?  @relation(fields: [tradingAccountId], references: [id], onDelete: SetNull)
   syncJobs          BrokerSyncJob[]
 
   @@unique([connectionId, externalAccountId])
+  @@index([userId, tradingAccountId])
   @@index([userId, provider, enabled])
 }
 
