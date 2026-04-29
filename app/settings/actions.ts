@@ -1,11 +1,64 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { refreshTradovateAccounts } from "@/lib/brokers/tradovate/oauth";
 import { syncTradovateConnection } from "@/lib/brokers/tradovate/sync";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/server";
+
+const tradingAccountSchema = z.object({
+  name: z.string().trim().min(1),
+  broker: z.string().trim().optional(),
+  currency: z.string().trim().min(3).max(3).default("USD")
+});
+
+export async function createTradingAccountAction(formData: FormData) {
+  const userId = await requireUserId();
+  const parsed = tradingAccountSchema.parse({
+    name: formData.get("name"),
+    broker: formData.get("broker") || undefined,
+    currency: formData.get("currency") || "USD"
+  });
+
+  await prisma.tradingAccount.upsert({
+    where: {
+      userId_name: {
+        userId,
+        name: parsed.name
+      }
+    },
+    create: {
+      userId,
+      name: parsed.name,
+      broker: parsed.broker || null,
+      currency: parsed.currency.toUpperCase()
+    },
+    update: {
+      broker: parsed.broker || null,
+      currency: parsed.currency.toUpperCase()
+    }
+  });
+
+  revalidateAccountViews();
+}
+
+export async function deleteTradingAccountAction(formData: FormData) {
+  const userId = await requireUserId();
+  const id = z.string().min(1).parse(formData.get("id"));
+  const confirmName = z.string().min(1).parse(formData.get("confirmName"));
+  const account = await prisma.tradingAccount.findFirst({
+    where: { id, userId }
+  });
+  if (!account || account.name !== confirmName) return;
+
+  await prisma.tradingAccount.delete({
+    where: { id }
+  });
+
+  revalidateAccountViews();
+}
 
 export async function updateTradovateAccountSelectionAction(formData: FormData) {
   const userId = await requireUserId();
@@ -51,4 +104,14 @@ export async function syncTradovateNowAction() {
   revalidatePath("/trades");
   revalidatePath("/dashboard");
   revalidatePath("/analytics");
+}
+
+function revalidateAccountViews() {
+  revalidatePath("/settings");
+  revalidatePath("/trades");
+  revalidatePath("/dashboard");
+  revalidatePath("/analytics");
+  revalidatePath("/setups");
+  revalidatePath("/insights");
+  revalidatePath("/import");
 }
