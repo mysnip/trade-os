@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 
-import { createTradingAccountAction, deleteTradingAccountAction } from "@/app/settings/actions";
+import {
+  createTradingAccountAction,
+  deleteTradesForTradingAccountAction,
+  deleteTradingAccountAction
+} from "@/app/settings/actions";
 import { useI18n } from "@/components/i18n-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,7 +67,9 @@ export function AccountManagement({ accounts }: { accounts: ManagedTradingAccoun
 function AccountRow({ account }: { account: ManagedTradingAccount }) {
   const { t } = useI18n();
   const [confirmName, setConfirmName] = useState("");
+  const [confirmTradeDeleteName, setConfirmTradeDeleteName] = useState("");
   const canDelete = confirmName === account.name;
+  const canDeleteTrades = confirmTradeDeleteName === account.name && account.tradeCount > 0;
 
   return (
     <div className="rounded-md border p-4">
@@ -78,24 +84,48 @@ function AccountRow({ account }: { account: ManagedTradingAccount }) {
         </div>
       </div>
 
-      <form action={deleteTradingAccountAction} className="mt-4 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-        <input type="hidden" name="id" value={account.id} />
-        <div className="space-y-2">
-          <Label>{t.accounts.deleteTitle}</Label>
-          <p className="text-xs text-muted-foreground">{t.accounts.deleteWarning}</p>
-          <Input
-            name="confirmName"
-            value={confirmName}
-            onChange={(event) => setConfirmName(event.target.value)}
-            placeholder={t.accounts.confirmName}
-          />
-          {!canDelete && confirmName ? <p className="text-xs text-destructive">{t.accounts.deleteBlocked}</p> : null}
-        </div>
-        <Button type="submit" variant="destructive" disabled={!canDelete}>
-          <Trash2 className="h-4 w-4" />
-          {t.common.delete}
-        </Button>
-      </form>
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <form action={deleteTradesForTradingAccountAction} className="grid gap-3 rounded-md border border-destructive/30 p-3 md:grid-cols-[1fr_auto] md:items-end">
+          <input type="hidden" name="id" value={account.id} />
+          <div className="space-y-2">
+            <Label>{t.accounts.deleteTradesTitle}</Label>
+            <p className="text-xs text-muted-foreground">{t.accounts.deleteTradesWarning}</p>
+            <Input
+              name="confirmName"
+              value={confirmTradeDeleteName}
+              onChange={(event) => setConfirmTradeDeleteName(event.target.value)}
+              placeholder={t.accounts.confirmName}
+              disabled={account.tradeCount === 0}
+            />
+            {!canDeleteTrades && confirmTradeDeleteName ? (
+              <p className="text-xs text-destructive">{t.accounts.deleteBlocked}</p>
+            ) : null}
+          </div>
+          <Button type="submit" variant="destructive" disabled={!canDeleteTrades}>
+            <Trash2 className="h-4 w-4" />
+            {t.common.delete}
+          </Button>
+        </form>
+
+        <form action={deleteTradingAccountAction} className="grid gap-3 rounded-md border p-3 md:grid-cols-[1fr_auto] md:items-end">
+          <input type="hidden" name="id" value={account.id} />
+          <div className="space-y-2">
+            <Label>{t.accounts.deleteTitle}</Label>
+            <p className="text-xs text-muted-foreground">{t.accounts.deleteWarning}</p>
+            <Input
+              name="confirmName"
+              value={confirmName}
+              onChange={(event) => setConfirmName(event.target.value)}
+              placeholder={t.accounts.confirmName}
+            />
+            {!canDelete && confirmName ? <p className="text-xs text-destructive">{t.accounts.deleteBlocked}</p> : null}
+          </div>
+          <Button type="submit" variant="destructive" disabled={!canDelete}>
+            <Trash2 className="h-4 w-4" />
+            {t.common.delete}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
