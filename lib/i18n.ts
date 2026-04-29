@@ -17,7 +17,27 @@ const de = {
     processing: "Verarbeite...",
     save: "Speichern",
     cancel: "Abbrechen",
-    autoDetect: "Auto erkennen"
+    autoDetect: "Auto erkennen",
+    delete: "Löschen",
+    create: "Erstellen"
+  },
+  accounts: {
+    selectorLabel: "Trading-Konten",
+    allAccounts: "Alle Konten",
+    selectedCount: "{count} ausgewählt",
+    noAccounts: "Noch keine Konten vorhanden.",
+    manageTitle: "Trading-Konten",
+    manageDescription: "Lege Konten für manuelle Trades, Imports und Analytics-Filter an.",
+    createTitle: "Konto anlegen",
+    name: "Kontoname",
+    broker: "Broker",
+    currency: "Währung",
+    deleteTitle: "Konto löschen",
+    deleteWarning: "Das Konto wird gelöscht. Bestehende Trades bleiben erhalten, verlieren aber die Konto-Zuordnung.",
+    confirmName: "Tippe den Kontonamen zur Bestätigung ein.",
+    deleteBlocked: "Gib den Kontonamen exakt ein, um zu löschen.",
+    required: "Bitte wähle ein Trading-Konto aus.",
+    unassigned: "Ohne Konto"
   },
   appShell: {
     tagline: "Trade Journal Intelligence",
@@ -313,7 +333,27 @@ const en: Dictionary = {
     processing: "Processing...",
     save: "Save",
     cancel: "Cancel",
-    autoDetect: "Auto detect"
+    autoDetect: "Auto detect",
+    delete: "Delete",
+    create: "Create"
+  },
+  accounts: {
+    selectorLabel: "Trading accounts",
+    allAccounts: "All accounts",
+    selectedCount: "{count} selected",
+    noAccounts: "No accounts yet.",
+    manageTitle: "Trading accounts",
+    manageDescription: "Create accounts for manual trades, imports, and analytics filters.",
+    createTitle: "Create account",
+    name: "Account name",
+    broker: "Broker",
+    currency: "Currency",
+    deleteTitle: "Delete account",
+    deleteWarning: "The account will be deleted. Existing trades stay intact but lose the account assignment.",
+    confirmName: "Type the account name to confirm.",
+    deleteBlocked: "Enter the exact account name to delete.",
+    required: "Please select a trading account.",
+    unassigned: "No account"
   },
   appShell: {
     tagline: "Trade Journal Intelligence",
