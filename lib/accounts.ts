@@ -22,6 +22,17 @@ export function buildTradeAccountWhere(userId: string, accountIds: string[]): Pr
   };
 }
 
+export function buildInsightAccountWhere(userId: string, accountIds: string[]): Prisma.AIInsightWhereInput {
+  return {
+    userId,
+    ...(accountIds.length > 0
+      ? {
+          OR: [{ accountIds: { isEmpty: true } }, { accountIds: { hasSome: accountIds } }]
+        }
+      : {})
+  };
+}
+
 export function accountNameById(accounts: TradingAccountOption[], accountId: string) {
   return accounts.find((account) => account.id === accountId)?.name ?? null;
 }

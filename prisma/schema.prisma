@@ -222,6 +222,7 @@ model AIInsight {
   id              String   @id @default(cuid())
   userId          String
   insightType     String
+  accountIds      String[] @default([])
   title           String
   summary         String
   evidence        Json
