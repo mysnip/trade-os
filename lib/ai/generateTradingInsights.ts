@@ -111,10 +111,16 @@ function fallbackInsights(trades: MetricTrade[], locale: Locale): GeneratedInsig
   }));
 }
 
-export async function generateTradingInsights(userId: string, dateRange?: DateRange, locale: Locale = "de") {
+export async function generateTradingInsights(
+  userId: string,
+  dateRange?: DateRange,
+  locale: Locale = "de",
+  accountIds: string[] = []
+) {
   const trades = await prisma.trade.findMany({
     where: {
       userId,
+      ...(accountIds.length > 0 ? { tradingAccountId: { in: accountIds } } : {}),
       ...(dateRange?.from || dateRange?.to
         ? {
             entryTime: {
@@ -152,6 +158,7 @@ export async function generateTradingInsights(userId: string, dateRange?: DateRa
           content: JSON.stringify({
             product: "Tradelyst",
             outputLanguage: locale === "en" ? "English" : "German",
+            accountFilter: accountIds.length > 0 ? accountIds : "all",
             constraint:
               "No Anlageberatung, no signal generation, no recommendation to enter or exit any future trade.",
             metrics,

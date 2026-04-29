@@ -6,10 +6,14 @@ import { generateTradingInsights } from "@/lib/ai/generateTradingInsights";
 import { getCurrentLocale } from "@/lib/i18n-server";
 import { requireUserId } from "@/lib/server";
 
-export async function generateInsightsAction() {
+export async function generateInsightsAction(formData: FormData) {
   const userId = await requireUserId();
   const locale = getCurrentLocale();
-  await generateTradingInsights(userId, undefined, locale);
+  const accountIds = String(formData.get("accountIds") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  await generateTradingInsights(userId, undefined, locale, accountIds);
   revalidatePath("/insights");
   revalidatePath("/dashboard");
 }
