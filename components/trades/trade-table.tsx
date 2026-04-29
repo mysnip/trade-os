@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -102,7 +103,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
               {t.trades.addManual}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{t.trades.addManualTitle}</DialogTitle>
             </DialogHeader>
@@ -202,7 +203,7 @@ export function TradeTable({ trades, setups }: { trades: TradeRow[]; setups: Set
                       <Edit className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+                  <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>{interpolate(t.trades.editTitle, { instrument: trade.instrument })}</DialogTitle>
                     </DialogHeader>
@@ -258,136 +259,159 @@ function TradeForm({
     <form action={action} className="space-y-5">
       {trade ? <input type="hidden" name="id" value={trade.id} /> : null}
 
-      <div className="grid gap-3 md:grid-cols-4">
-        <Field label={t.trades.fields.broker}>
-          <Input name="broker" defaultValue={trade?.broker ?? ""} placeholder="Tradovate" />
-        </Field>
-        <Field label={t.trades.fields.account}>
-          <Input name="accountName" defaultValue={trade?.accountName ?? ""} placeholder="Evaluation" />
-        </Field>
-        <Field label={t.trades.instrument}>
-          <Input name="instrument" defaultValue={trade?.instrument ?? ""} placeholder="NQ" required />
-        </Field>
-        <Field label={t.trades.direction}>
-          <Select name="direction" defaultValue={trade?.direction ?? "LONG"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="LONG">Long</SelectItem>
-              <SelectItem value="SHORT">Short</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
+      <Tabs defaultValue="essentials" className="space-y-4">
+        <TabsList className="grid h-auto w-full grid-cols-3">
+          <TabsTrigger value="essentials">{t.trades.formTabs.essentials}</TabsTrigger>
+          <TabsTrigger value="execution">{t.trades.formTabs.execution}</TabsTrigger>
+          <TabsTrigger value="journal">{t.trades.formTabs.journal}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="essentials" className="space-y-4">
+          <FormSection title={t.trades.formSections.essentials} description={t.trades.formSections.essentialsHelp}>
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label={t.trades.instrument}>
+                <Input name="instrument" defaultValue={trade?.instrument ?? ""} placeholder="NQ" required />
+              </Field>
+              <Field label={t.trades.direction}>
+                <Select name="direction" defaultValue={trade?.direction ?? "LONG"}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LONG">Long</SelectItem>
+                    <SelectItem value="SHORT">Short</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label={t.trades.fields.quantity}>
+                <Input type="number" step="any" name="quantity" defaultValue={numberValue(trade?.quantity) || "1"} required />
+              </Field>
+              <Field label={t.trades.fields.netPnl}>
+                <Input type="number" step="any" name="netPnl" defaultValue={numberValue(trade?.netPnl)} required />
+              </Field>
+            </div>
+          </FormSection>
+
+          <FormSection title={t.trades.formSections.timing}>
+            <div className="grid gap-3 md:grid-cols-5">
+              <Field label={t.trades.fields.entryDate}>
+                <Input type="date" name="entryDate" defaultValue={datePart(trade?.entryTime) || datePart(today)} required />
+              </Field>
+              <Field label={t.trades.fields.entryTime}>
+                <Input type="time" name="entryTime" defaultValue={timePart(trade?.entryTime) || "09:30"} required />
+              </Field>
+              <Field label={t.trades.fields.exitDate}>
+                <Input type="date" name="exitDate" defaultValue={datePart(trade?.exitTime)} />
+              </Field>
+              <Field label={t.trades.fields.exitTime}>
+                <Input type="time" name="exitTime" defaultValue={timePart(trade?.exitTime)} />
+              </Field>
+              <Field label={t.trades.session}>
+                <Select name="session" defaultValue={trade?.session ?? "AUTO"}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AUTO">{t.common.autoDetect}</SelectItem>
+                    <SelectItem value="ASIA">{t.trades.sessionLabels.ASIA}</SelectItem>
+                    <SelectItem value="LONDON">{t.trades.sessionLabels.LONDON}</SelectItem>
+                    <SelectItem value="NEW_YORK">{t.trades.sessionLabels.NEW_YORK}</SelectItem>
+                    <SelectItem value="OTHER">{t.trades.sessionLabels.OTHER}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+          </FormSection>
+        </TabsContent>
+
+        <TabsContent value="execution" className="space-y-4">
+          <FormSection title={t.trades.formSections.execution}>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label={t.trades.fields.entryPrice}>
+                <Input type="number" step="any" name="entryPrice" defaultValue={numberValue(trade?.entryPrice)} required />
+              </Field>
+              <Field label={t.trades.fields.exitPrice}>
+                <Input type="number" step="any" name="exitPrice" defaultValue={numberValue(trade?.exitPrice)} />
+              </Field>
+              <Field label={t.trades.fields.rMultiple}>
+                <Input type="number" step="any" name="rMultiple" defaultValue={numberValue(trade?.rMultiple)} placeholder={t.trades.rAutoPlaceholder} />
+              </Field>
+              <Field label={t.trades.fields.riskAmount}>
+                <Input type="number" step="any" name="riskAmount" defaultValue={numberValue(trade?.riskAmount)} />
+              </Field>
+              <Field label={t.trades.fields.stopLoss}>
+                <Input type="number" step="any" name="stopLoss" defaultValue={numberValue(trade?.stopLoss)} />
+              </Field>
+              <Field label={t.trades.fields.takeProfit}>
+                <Input type="number" step="any" name="takeProfit" defaultValue={numberValue(trade?.takeProfit)} />
+              </Field>
+            </div>
+          </FormSection>
+
+          <FormSection title={t.trades.formSections.costs}>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label={t.trades.fields.grossPnl}>
+                <Input type="number" step="any" name="grossPnl" defaultValue={numberValue(trade?.grossPnl)} />
+              </Field>
+              <Field label={t.trades.fields.commission}>
+                <Input type="number" step="any" name="commission" defaultValue={numberValue(trade?.commission)} />
+              </Field>
+              <Field label={t.trades.fields.fees}>
+                <Input type="number" step="any" name="fees" defaultValue={numberValue(trade?.fees)} />
+              </Field>
+              <Field label={t.trades.fields.broker}>
+                <Input name="broker" defaultValue={trade?.broker ?? ""} placeholder="Tradovate" />
+              </Field>
+              <Field label={t.trades.fields.account}>
+                <Input name="accountName" defaultValue={trade?.accountName ?? ""} placeholder="Evaluation" />
+              </Field>
+              <Field label={t.trades.fields.importedFrom}>
+                <Input name="importedFrom" defaultValue={trade?.importedFrom ?? "manual"} />
+              </Field>
+            </div>
+          </FormSection>
+        </TabsContent>
+
+        <TabsContent value="journal" className="space-y-4">
+          <FormSection title={t.trades.formSections.journal}>
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label={t.trades.setup}>
+                <Select name="setupId" defaultValue={trade?.setupId ?? "none"}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t.trades.noSetup}</SelectItem>
+                    {setups.map((setup) => <SelectItem key={setup.id} value={setup.id}>{setup.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label={t.trades.fields.emotionBefore}>
+                <Input name="emotionBefore" defaultValue={trade?.emotionBefore ?? ""} />
+              </Field>
+              <Field label={t.trades.fields.emotionAfter}>
+                <Input name="emotionAfter" defaultValue={trade?.emotionAfter ?? ""} />
+              </Field>
+            </div>
+
+            <Field label={t.trades.fields.mistakeTags}>
+              <TagInput
+                initialTags={trade?.mistakeTags ?? []}
+                name="mistakeTags"
+                suggestions={allMistakeTags}
+              />
+            </Field>
+
+            <Field label={t.trades.fields.notes}>
+              <Textarea name="notes" defaultValue={trade?.notes ?? ""} className="min-h-28" />
+            </Field>
+          </FormSection>
+
+          <FormSection title={t.trades.formSections.media}>
+            <Field label={t.trades.fields.screenshot}>
+              <ScreenshotInput initialValue={trade?.screenshotUrl ?? ""} />
+            </Field>
+          </FormSection>
+        </TabsContent>
+      </Tabs>
+
+      <div className="sticky bottom-0 -mx-1 flex justify-end border-t bg-background/95 px-1 pt-4 backdrop-blur">
+        <Button type="submit">{submitLabel}</Button>
       </div>
-
-      <div className="grid gap-3 md:grid-cols-4">
-        <Field label={t.trades.fields.entryDate}>
-          <Input type="date" name="entryDate" defaultValue={datePart(trade?.entryTime) || datePart(today)} required />
-        </Field>
-        <Field label={t.trades.fields.entryTime}>
-          <Input type="time" name="entryTime" defaultValue={timePart(trade?.entryTime) || "09:30"} required />
-        </Field>
-        <Field label={t.trades.fields.exitDate}>
-          <Input type="date" name="exitDate" defaultValue={datePart(trade?.exitTime)} />
-        </Field>
-        <Field label={t.trades.fields.exitTime}>
-          <Input type="time" name="exitTime" defaultValue={timePart(trade?.exitTime)} />
-        </Field>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-4">
-        <Field label={t.trades.fields.entryPrice}>
-          <Input type="number" step="any" name="entryPrice" defaultValue={numberValue(trade?.entryPrice)} required />
-        </Field>
-        <Field label={t.trades.fields.exitPrice}>
-          <Input type="number" step="any" name="exitPrice" defaultValue={numberValue(trade?.exitPrice)} />
-        </Field>
-        <Field label={t.trades.fields.quantity}>
-          <Input type="number" step="any" name="quantity" defaultValue={numberValue(trade?.quantity) || "1"} required />
-        </Field>
-        <Field label={t.trades.fields.netPnl}>
-          <Input type="number" step="any" name="netPnl" defaultValue={numberValue(trade?.netPnl)} required />
-        </Field>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-4">
-        <Field label={t.trades.fields.grossPnl}>
-          <Input type="number" step="any" name="grossPnl" defaultValue={numberValue(trade?.grossPnl)} />
-        </Field>
-        <Field label={t.trades.fields.commission}>
-          <Input type="number" step="any" name="commission" defaultValue={numberValue(trade?.commission)} />
-        </Field>
-        <Field label={t.trades.fields.fees}>
-          <Input type="number" step="any" name="fees" defaultValue={numberValue(trade?.fees)} />
-        </Field>
-        <Field label={t.trades.fields.riskAmount}>
-          <Input type="number" step="any" name="riskAmount" defaultValue={numberValue(trade?.riskAmount)} />
-        </Field>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-4">
-        <Field label={t.trades.fields.rMultiple}>
-          <Input type="number" step="any" name="rMultiple" defaultValue={numberValue(trade?.rMultiple)} placeholder={t.trades.rAutoPlaceholder} />
-        </Field>
-        <Field label={t.trades.fields.stopLoss}>
-          <Input type="number" step="any" name="stopLoss" defaultValue={numberValue(trade?.stopLoss)} />
-        </Field>
-        <Field label={t.trades.fields.takeProfit}>
-          <Input type="number" step="any" name="takeProfit" defaultValue={numberValue(trade?.takeProfit)} />
-        </Field>
-        <Field label={t.trades.session}>
-          <Select name="session" defaultValue={trade?.session ?? "AUTO"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="AUTO">{t.common.autoDetect}</SelectItem>
-              <SelectItem value="ASIA">{t.trades.sessionLabels.ASIA}</SelectItem>
-              <SelectItem value="LONDON">{t.trades.sessionLabels.LONDON}</SelectItem>
-              <SelectItem value="NEW_YORK">{t.trades.sessionLabels.NEW_YORK}</SelectItem>
-              <SelectItem value="OTHER">{t.trades.sessionLabels.OTHER}</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-3">
-        <Field label={t.trades.setup}>
-          <Select name="setupId" defaultValue={trade?.setupId ?? "none"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">{t.trades.noSetup}</SelectItem>
-              {setups.map((setup) => <SelectItem key={setup.id} value={setup.id}>{setup.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label={t.trades.fields.emotionBefore}>
-          <Input name="emotionBefore" defaultValue={trade?.emotionBefore ?? ""} />
-        </Field>
-        <Field label={t.trades.fields.emotionAfter}>
-          <Input name="emotionAfter" defaultValue={trade?.emotionAfter ?? ""} />
-        </Field>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-2">
-        <Field label={t.trades.fields.screenshot}>
-          <ScreenshotInput initialValue={trade?.screenshotUrl ?? ""} />
-        </Field>
-        <Field label={t.trades.fields.importedFrom}>
-          <Input name="importedFrom" defaultValue={trade?.importedFrom ?? "manual"} />
-        </Field>
-      </div>
-
-      <Field label={t.trades.fields.mistakeTags}>
-        <TagInput
-          initialTags={trade?.mistakeTags ?? []}
-          name="mistakeTags"
-          suggestions={allMistakeTags}
-        />
-      </Field>
-
-      <Field label={t.trades.fields.notes}>
-        <Textarea name="notes" defaultValue={trade?.notes ?? ""} />
-      </Field>
-
-      <Button type="submit">{submitLabel}</Button>
     </form>
   );
 }
@@ -593,5 +617,25 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <Label>{label}</Label>
       {children}
     </div>
+  );
+}
+
+function FormSection({
+  title,
+  description,
+  children
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-4 rounded-md border bg-card/40 p-4">
+      <div>
+        <h3 className="text-sm font-medium">{title}</h3>
+        {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
+      </div>
+      {children}
+    </section>
   );
 }
