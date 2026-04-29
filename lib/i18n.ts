@@ -178,6 +178,20 @@ const de = {
       mistakeTags: "Mistake Tags",
       notes: "Notizen"
     },
+    formTabs: {
+      essentials: "Kern",
+      execution: "Ausführung",
+      journal: "Journal"
+    },
+    formSections: {
+      essentials: "Pflichtdaten",
+      essentialsHelp: "Das Minimum, damit der Trade in Journal und Analytics korrekt ausgewertet wird.",
+      timing: "Zeit & Session",
+      execution: "Preise & Risiko",
+      costs: "Kosten & Herkunft",
+      journal: "Setup, Verhalten & Review",
+      media: "Screenshot"
+    },
     noSetup: "Kein Setup",
     rAutoPlaceholder: "Automatisch, wenn Risiko vorhanden",
     addTag: "Tag hinzufügen...",
@@ -459,6 +473,20 @@ const en: Dictionary = {
       importedFrom: "Imported from",
       mistakeTags: "Mistake tags",
       notes: "Notes"
+    },
+    formTabs: {
+      essentials: "Core",
+      execution: "Execution",
+      journal: "Journal"
+    },
+    formSections: {
+      essentials: "Required data",
+      essentialsHelp: "The minimum needed for the trade to work correctly in the journal and analytics.",
+      timing: "Time & session",
+      execution: "Prices & risk",
+      costs: "Costs & source",
+      journal: "Setup, behavior & review",
+      media: "Screenshot"
     },
     noSetup: "No setup",
     rAutoPlaceholder: "Auto if risk exists",
